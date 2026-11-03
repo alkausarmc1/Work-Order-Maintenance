@@ -142,10 +142,10 @@ Istirahat 12.00-13.00
 <div id="rs" class="hid"><b>Per bulan</b><div class="sc" id="r1"></div><br><b>Total jam per stasiun per bulan</b><div class="sc" id="r2"></div><div class="sub" id="rN"></div></div>
 </div></section>
 <section id="v-ot" class="hid"><div class="card">
-<div class="row"><label>Tahun<select id="oY"></select></label><label>Bulan<select id="oM"></select></label><label>Lembur lebih dari (jam)<input id="oT" type="number" step="0.5" min="0" value="3"></label><label>Cari PIC<input id="oQ" placeholder="nama"></label><button class="btn sec" id="oX" style="flex:0 0 auto">Unduh Excel</button></div>
+<div class="row"><label>Tahun<select id="oY"></select></label><label>Bulan<select id="oM"></select></label><label>Lembur lebih dari (jam)<input id="oT" type="number" step="0.5" min="0" value="3"></label><label>Cari PIC<input id="oQ" placeholder="nama"></label><label>Keterangan pekerjaan di Excel<select id="oK"><option value="all">Semua pekerjaan hari itu</option><option value="ot">Hanya yang masuk jam lembur</option></select></label><button class="btn sec" id="oX" style="flex:0 0 auto">Unduh Excel</button></div>
 <div class="sub" id="oInfo"></div>
-<details><summary>Aturan lembur</summary><div class="sub">Jam kerja normal per hari, selebihnya lembur. Hari biasa dan hari Sabtu punya batas sendiri. Pada off day seluruh jam kerja langsung lembur. Hari Minggu dianggap off day kalau tidak ada penanda (data lama dari Excel tidak punya penanda off day). Shift ditentukan dari jam mulai kerja: mulai pukul 05:00 sampai 14:59 shift pagi, selain itu shift malam.</div>
-<div class="g" style="margin-top:6px"><label>Jam normal hari biasa<input type="number" step="0.5" min="0" id="oN1"></label><label>Jam normal hari Sabtu<input type="number" step="0.5" min="0" id="oN2"></label></div>
+<details><summary>Aturan lembur</summary><div class="sub">Lembur dihitung dari kerja <b>setelah jam selesai shift</b>, dan jam istirahat sudah termasuk di dalam shift. Shift pagi 07:00 sampai 15:00 dan shift malam 17:00 sampai 01:00 (7 jam kerja + 1 jam istirahat). Hari Sabtu 5 jam kerja tanpa istirahat: 07:00 sampai 12:00 dan 17:00 sampai 22:00. Pekerja yang masuk lebih awal dihitung mulai jam shift. Waktu job yang tumpang tindih tidak dihitung dua kali. Cara hitung "Setelah jam kerja normal terpenuhi" memakai jam kerja sebenarnya (7 jam, Sabtu 5 jam), jadi hasilnya bergeser kalau istirahat lebih dari 1 jam. Pada off day seluruh jam kerja lembur sejak jam masuk. Hari Minggu dianggap off day kalau tidak ada penanda (data lama dari Excel tidak punya penanda off day). Shift ditentukan dari jam mulai kerja: pukul 05:00 sampai 14:59 shift pagi, selain itu shift malam.</div>
+<div class="g" style="margin-top:6px"><label>Cara hitung lembur<select id="oMt"><option value="clock">Setelah jam selesai shift</option><option value="hours">Setelah jam kerja normal terpenuhi</option></select></label><label>Mulai shift pagi<input type="time" id="oSP"></label><label>Mulai shift malam<input type="time" id="oSM"></label><label>Jam kerja normal hari biasa<input type="number" step="0.5" min="0" id="oN1"></label><label>Istirahat hari biasa (jam)<input type="number" step="0.5" min="0" id="oN3"></label><label>Jam kerja normal hari Sabtu<input type="number" step="0.5" min="0" id="oN2"></label></div>
 <label style="margin-top:8px;color:var(--tx);font-size:13px;display:flex;gap:6px;align-items:center"><input type="checkbox" id="oA" style="width:auto;margin:0"> Sertakan data yang jamnya hasil bagi otomatis (6 sampai 16 Oktober, jamnya perkiraan)</label></details>
 <div class="sc ot" id="oT1" style="margin-top:8px"></div></div>
 <div class="card"><b>Total lembur per orang</b><div class="sc ot" id="oT2"></div></div></section>
@@ -248,8 +248,8 @@ function resolve(text){const k=nk(text);if(!k)return null;
 let JR=[];const blank=()=>({u:'',st:'',d:'',e:'',cf:'',man:false,dur:null,p2:($('fPic2')||{}).value||'',p2m:false});
 const tm=s=>{const p=s.split(':');return +p[0]*60+ +p[1]};
 const tf=m=>String(Math.floor(m/60)%24).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
-function plan(fx,cf){const n=fx.length,c=cf||{a:$('fMul').value,b:$('fSel').value,x:$('fBs').value,y:$('fBe').value},a=c.a,b=c.b;if(!a||!b||!n)return null;
- const S=tm(a);let E=tm(b);if(E<=S)E+=1440;let B1=0,B2=0,br=0;const x=c.x,y=c.y;
+function plan(fx,cf){const n=fx.length,c=cf||{a:$('fMul').value,b:$('fSel').value,x:$('fBs').value,y:$('fBe').value,dt:$('fDT').value},a=c.a,b=c.b;if(!a||!b||!n)return null;
+ let S=tm(a);if(c.dt!=='O'){const kk=shiftKind(a),s0=shStart(kk);if(S<s0)S=s0}let E=tm(b);if(E<=S)E+=1440;let B1=0,B2=0,br=0;const x=c.x,y=c.y;
  if(x&&y){let p=tm(x),q=tm(y);if(p<S)p+=1440;if(q<=p)q+=1440;B1=Math.max(p,S);B2=Math.min(q,E);if(B2>B1)br=B2-B1;else B1=B2=0}
  const net=E-S-br;if(net<=0)return null;
  const ck=(o,end)=>S+o+(br&&(end?o>B1-S:o>=B1-S)?br:0);
@@ -268,7 +268,7 @@ function updPlan(){const ix=[];JR.forEach((j,i)=>{if(j.u.trim())ix.push(i)});con
   c.querySelector('.jt').innerHTML=ok?p.l[k].segs.map(z=>tf(z.s)+' – '+tf(z.e)).join(' + ')+' · '+fj(p.l[k].h)+' jam'+(p.l[k].span?' <span>(dipecah karena istirahat)</span>':''):'';
   inp.classList.toggle('lk',j.dur!=null);c.querySelector('.ja').style.display=j.dur!=null?'':'none';
   if(document.activeElement!==inp)inp.value=j.dur!=null?String(Math.round(j.dur/60*100)/100):(ok?String(Math.round(p.l[k].h*100)/100):'')});
- $('nett').textContent+=otNote(p&&!p.err?p.net-(p.left||0):(p1?p1.net:0),$('fDT').value,$('fTgl').value);
+ $('nett').textContent+=otNote($('fMul').value,$('fSel').value,p&&!p.err?p.net-(p.left||0):(p1?p1.net:0),$('fDT').value,$('fTgl').value);
  $('plan').style.color=p&&p.err?'var(--bad)':'';
  $('plan').textContent=p?(p.err||ix.length+' job, '+fj(p.net/60)+' jam kerja bersih'+(p.left?' ('+fj(p.left/60)+' jam tidak terpakai)':'')+(ix.some(i=>JR[i].dur==null)?', sisanya dibagi rata (dibulatkan per '+p.g+' menit)':'')):''}
 function jobHtml(j,i){return '<div class="jc'+(j.u&&j.cf==='cek'?' cfc':j.u&&j.cf==='pilih'?' cfp':'')+'" data-i="'+i+'"><div class="jh"><b>'+(i+1)+'</b><input class="ju" aria-label="Uraian job ke-'+(i+1)+'" value="'+esc(j.u)+'" placeholder="contoh: perbaikan mesin press no.2" autocomplete="off">'+(JR.length>1?'<button class="x jx" title="Hapus job" aria-label="Hapus job">✕</button>':'')+'</div>'+
@@ -498,7 +498,7 @@ function mkWM(msgs){const out=[],skip=[];
   out.push({name:r.name,pic,t:r.t,dt:r.dt||dtDef(r.t),dtMan:!!r.dt,gs:r.gs,ge:r.ge,bs:r.bs,be:r.be,inc:true,jobs:r.jl.map(o=>{const x=resolve(o.u)||{st:'',d:'',e:'',cf:''};return{u:o.u,p2:o.p2,st:x.st,d:x.d,e:x.e,cf:x.cf,man:false}})})}
  const seen={};out.forEach(m=>{const k=m.pic+'|'+m.t;m.dup=jobs.some(j=>j.p===m.pic&&j.t===m.t)||!!seen[k];seen[k]=1;if(m.dup)m.inc=false});
  return{out,skip}}
-const cfOf=m=>({a:m.gs,b:m.ge,x:m.bs,y:m.be});
+const cfOf=m=>({a:m.gs,b:m.ge,x:m.bs,y:m.be,dt:m.dt});
 function issues(m){const r=[];if(!m.pic.trim())r.push('PIC');if(!m.t)r.push('tanggal');if(!m.gs||!m.ge)r.push('jam kerja');if(!m.jobs.length)r.push('job');
  else{if(m.jobs.some(j=>!j.st))r.push('stasiun');if(m.jobs.some(j=>!j.d.trim()))r.push('mesin');
   if(m.gs&&m.ge){const p=plan(m.jobs.map(()=>null),cfOf(m));if(!p)r.push('jam kerja tidak valid');else if(p.err)r.push(p.err)}}return r}
@@ -508,7 +508,7 @@ function waCard(m,i){return '<div class="jc" data-m="'+i+'"><div class="jh"><lab
  '<div class="sub wsb" style="margin:4px 0"></div><div class="g">'+fl('PIC','wp','text',m.pic,' list="dlP"')+fl('Tanggal','wt','date',m.t)+fl('Jam mulai','wg','time',m.gs)+fl('Jam selesai','we','time',m.ge)+fl('Istirahat mulai','wb','time',m.bs)+fl('Istirahat selesai','wc','time',m.be)+'<label>Jenis hari<select class="wk"><option value="B"'+(m.dt==='B'?' selected':'')+'>Hari biasa</option><option value="O"'+(m.dt==='O'?' selected':'')+'>Off day</option></select></label>'+'</div>'+
  m.jobs.map((j,k)=>'<div class="wj" data-j="'+k+'"><div class="jh"><input class="wu" aria-label="Uraian job" value="'+esc(j.u)+'"><button class="x wx" title="Hapus job" aria-label="Hapus job">✕</button></div><div class="jg"><label>Stasiun<select class="ws">'+stOpt(j.st)+'</select></label><label>Mesin<input class="wd" list="dlM" value="'+esc(j.d)+'"></label><label>Bagian mesin<input class="wf" value="'+esc(j.e)+'"></label><label>Rekan (PIC ke-2)<input class="wr" list="dlP" value="'+esc(j.p2||'')+'"></label></div><div class="jt"></div></div>').join('')+'</div>'}
 function updCard(c){const m=WM[+c.dataset.m],is=issues(m),p=m.jobs.length&&m.gs&&m.ge?plan(m.jobs.map(()=>null),cfOf(m)):null,ok=p&&!p.err;
- c.querySelector('.wsb').innerHTML=(m.dup?'<span style="color:var(--cek);font-weight:700">Sudah ada input PIC ini di tanggal ini, tidak ikut disimpan kecuali dicentang. </span>':'')+(is.length?'<span style="color:var(--bad);font-weight:700">Lengkapi: '+esc(is.join(', '))+'</span>':'<span style="color:var(--ok);font-weight:700">Siap · '+m.jobs.length+' job · '+fj(p.net/60)+' jam'+(ok?otNote(p.net-(p.left||0),m.dt,m.t):'')+'</span>');
+ c.querySelector('.wsb').innerHTML=(m.dup?'<span style="color:var(--cek);font-weight:700">Sudah ada input PIC ini di tanggal ini, tidak ikut disimpan kecuali dicentang. </span>':'')+(is.length?'<span style="color:var(--bad);font-weight:700">Lengkapi: '+esc(is.join(', '))+'</span>':'<span style="color:var(--ok);font-weight:700">Siap · '+m.jobs.length+' job · '+fj(p.net/60)+' jam'+(ok?otNote(m.gs,m.ge,p.net-(p.left||0),m.dt,m.t):'')+'</span>');
  c.querySelectorAll('.wj').forEach((w,k)=>{const j=m.jobs[k];w.classList.toggle('cfc',j.cf==='cek'&&!!j.st);w.classList.toggle('cfp',!j.st);
   w.querySelector('.jt').innerHTML=ok?p.l[k].segs.map(z=>tf(z.s)+' – '+tf(z.e)).join(' + ')+' · '+fj(p.l[k].h)+' jam'+(p.l[k].span?' <span>(dipecah karena istirahat)</span>':''):''})}
 function updWAbtn(){const b=$('waGo');if(!b)return;const n=WM.filter(m=>m.inc&&!issues(m).length).length;b.disabled=!n;b.textContent=n?'Masukkan '+n+' pesan ke rekap':'Masukkan ke rekap'}
@@ -541,56 +541,68 @@ async function waCommit(){if(busy)return;const ok=WM.filter(m=>m.inc&&!issues(m)
  busy=false}
 document.querySelectorAll('.tw button').forEach(b=>b.onclick=()=>{const w=b.dataset.w==='w';document.querySelectorAll('.tw button').forEach(x=>x.classList.toggle('on',x===b));$('iw').classList.toggle('hid',!w);$('im').classList.toggle('hid',w)});
 /* ===== lembur ===== */
-let NH=Object.assign({b:7,s:5},(()=>{try{return JSON.parse(localStorage.getItem('jmnh')||'{}')}catch(e){return{}}})());
+let NH=Object.assign({ps:'07:00',ms:'17:00',b:7,br:1,s:5,m:'clock'},(()=>{try{return JSON.parse(localStorage.getItem('jmnh')||'{}')}catch(e){return{}}})());
 function dow(t){return new Date(t+'T00:00:00').getDay()}
 function dtDef(t){return dow(t)===0?'O':'B'}
 const dtName=(dt,t)=>dt==='O'?'Off day':dow(t)===6?'Sabtu':'Hari biasa';
-const normMin=(dt,t)=>dt==='O'?0:Math.round((dow(t)===6?NH.s:NH.b)*60);
+const shStart=k=>tm(k==='P'?NH.ps:NH.ms);
+const winEnd=(k,t)=>shStart(k)+Math.round((dow(t)===6?NH.s:(NH.b+NH.br))*60);
 const shiftKind=gs=>{const m=tm(gs);return m>=300&&m<900?'P':'M'};
-function otNote(used,dt,t){if(!used||!t)return'';const n=normMin(dt,t),o=Math.max(0,used-n);return' · '+dtName(dt,t)+': normal '+fj(Math.min(used,n)/60)+' jam'+(o>0?', lembur '+fj(o/60)+' jam':'')}
+function otNote(gs,ge,used,dt,t){if(!gs||!ge||!t)return'';const k=shiftKind(gs),sn=dow(t)===6?'Sabtu':'Hari biasa';
+ if(dt==='O')return' · Off day: seluruh jam kerja lembur ('+fj(used/60)+' jam)';
+ if(NH.m==='hours'){const n=Math.round((dow(t)===6?NH.s:NH.b)*60),o=Math.max(0,used-n);return' · '+sn+': kerja normal '+fj(Math.min(used,n)/60)+' jam'+(o>0?', lembur '+fj(o/60)+' jam':', tidak ada lembur')}
+ let a=tm(gs),b=tm(ge);if(k==='M'){if(a<720)a+=1440;if(b<720)b+=1440}if(b<=a)b+=1440;
+ const S=shStart(k),E=winEnd(k,t),o=Math.max(0,b-Math.max(a,S,E));
+ return' · '+sn+': kerja normal sampai '+tf(E)+(a<S?', hitungan jam kerja mulai '+tf(S):'')+(o>0?', lembur '+fj(o/60)+' jam':', tidak ada lembur')}
 function otRecs(Y,mi,auto){const out=[],pre=Y+'-'+p2(mi+1);
  if(Y===SEED.year)for(const r of SEED.it.R){if(r[6]==null||r[8]==null||(r[14]&&!auto))continue;let d=r[5];
   if(d&&!/^\d{4}-/.test(d)){const m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(d);d=m?iso(m[3],m[2],m[1]):null}
-  if(!d||d.slice(0,7)!==pre)continue;out.push({t:d,p:(SEED.it.P[r[10]]||'').trim().toUpperCase()||'(TANPA PIC)',s:r[6],e:r[8],u:r[4]||'',sh:null,dt:null})}
- jobs.forEach(j=>{if(j.t.slice(0,7)===pre&&j.s&&j.e)out.push({t:j.t,p:j.p||'(TANPA PIC)',s:tm(j.s),e:tm(j.e),u:j.u,sh:j.w?j.w.split('-')[0]:null,dt:j.dt||null})});return out}
+  if(!d||d.slice(0,7)!==pre)continue;const nm=splitPic(SEED.it.P[r[10]]||'');(nm.length?nm:['(TANPA PIC)']).forEach(n=>out.push({t:d,p:n,s:r[6],e:r[8],u:r[4]||'',st:SEED.it.S[r[1]]||'',sh:null,dt:null}))}
+ jobs.forEach(j=>{if(j.t.slice(0,7)===pre&&j.s&&j.e){const nm=splitPic(j.p);(nm.length?nm:['(TANPA PIC)']).forEach(n=>out.push({t:j.t,p:n,s:tm(j.s),e:tm(j.e),u:j.u,st:j.st||'',sh:j.w?j.w.split('-')[0]:null,dt:j.dt||null}))}});return out}
 function otGroups(recs){const G={};recs.forEach(r=>{(G[r.p+'|'+r.t]=G[r.p+'|'+r.t]||{p:r.p,t:r.t,rows:[]}).rows.push(r)});
- return Object.values(G).map(g=>{const w=g.rows.find(r=>r.sh),k=w?shiftKind(w.sh):(g.rows.some(r=>r.s>=300&&r.s<900)?'P':'M'),d0=g.rows.find(r=>r.dt),dt=d0?d0.dt:dtDef(g.t);
-  const rs=g.rows.map(r=>{let a=r.s,b=r.e;if(k==='M'){if(a<720)a+=1440;if(b<720)b+=1440}if(b<=a)b+=1440;return{u:r.u,a,b}}).sort((x,y)=>x.a-y.a);
-  let rem=normMin(dt,g.t),tot=0,ot=0;const lines=[];
-  rs.forEach(r=>{const d=r.b-r.a;tot+=d;const nm=Math.min(d,rem);rem-=nm;const o=d-nm;if(o>0){ot+=o;lines.push({u:r.u,s:tf(r.b-o),e:tf(r.b),ot:o})}});
-  return{p:g.p,t:g.t,k,dt,tot:Math.round(tot/60*100)/100,ot:Math.round(ot/60*100)/100,first:rs[0].a,last:Math.max(...rs.map(r=>r.b)),lines}}).filter(g=>g.ot>0)}
+ return Object.values(G).map(g=>{const w=g.rows.find(r=>r.sh),k=w?shiftKind(w.sh):(g.rows.some(r=>r.s>=300&&r.s<900)?'P':'M'),d0=g.rows.find(r=>r.dt),dt=d0?d0.dt:dtDef(g.t),S=shStart(k),E=winEnd(k,g.t);
+  let tot=0,ot=0,first=1e9,last=-1,cov=-1e9,rem=Math.round((dow(g.t)===6?NH.s:NH.b)*60);const lines=[],items=[];
+  g.rows.map(r=>{let a=r.s,b=r.e;if(k==='M'){if(a<720)a+=1440;if(b<720)b+=1440}if(b<=a)b+=1440;return{u:r.u,st:r.st,a,b}}).sort((x,y)=>x.a-y.a).forEach(r=>{
+   let a=r.a;if(dt!=='O')a=Math.max(a,S);if(r.b<=a)return;                       /* masuk lebih awal dihitung mulai jam shift */
+   items.push({u:r.u,st:r.st});if(a<first)first=a;if(r.b>last)last=r.b;
+   const a2=Math.max(a,cov);cov=Math.max(cov,r.b);if(r.b<=a2)return;               /* waktu yang tumpang tindih tidak dihitung dua kali */
+   const d=r.b-a2;let o;if(dt==='O')o=d;else if(NH.m==='hours'){const nm=Math.min(d,rem);rem-=nm;o=d-nm}else o=Math.max(0,r.b-Math.max(a2,E));
+   tot+=d;ot+=o;if(o>0)lines.push({u:r.u,st:r.st,s:tf(r.b-o),e:tf(r.b),ot:o})});
+  return{p:g.p,t:g.t,k,dt,tot:Math.round(tot/60*100)/100,ot:Math.round(ot/60*100)/100,first,last,lines,items}}).filter(g=>g.ot>0)}
 let OTC=null;
 function renderOT(){if(!$('oY'))return;const Y0=+$('oY').value||SEED.year,sel=$('oM'),cur=sel.value,ys=[...new Set([SEED.year,...jobs.map(j=>+j.t.slice(0,4))])].sort();
  $('oY').innerHTML=ys.map(y=>'<option>'+y+'</option>').join('');$('oY').value=ys.includes(Y0)?Y0:SEED.year;const Y=+$('oY').value;
  const cnt=MF.map(()=>0);if(Y===SEED.year)for(const r of SEED.it.R)cnt[r[12]]++;jobs.forEach(j=>{if(+j.t.slice(0,4)===Y)cnt[+j.t.slice(5,7)-1]++});
  const av=cnt.map((n,i)=>n?i:-1).filter(i=>i>=0);sel.innerHTML=av.map(i=>'<option value="'+i+'">'+MF[i]+'</option>').join('');sel.value=av.map(String).includes(cur)?cur:String(av.length?av[av.length-1]:0);
- [['oN1','b'],['oN2','s']].forEach(x=>{if(document.activeElement!==$(x[0]))$(x[0]).value=NH[x[1]]});
+ [['oSP','ps'],['oSM','ms'],['oN1','b'],['oN3','br'],['oN2','s']].forEach(x=>{if(document.activeElement!==$(x[0]))$(x[0]).value=NH[x[1]]});
+ $('oMt').value=NH.m;$('oX').textContent='Unduh Excel (lembur lebih dari '+fj(parseFloat($('oT').value)||0)+' jam)';
  const mi=+sel.value,thr=parseFloat($('oT').value)||0,q=$('oQ').value.toUpperCase(),auto=$('oA').checked;
  const all=otGroups(otRecs(Y,mi,auto)).filter(g=>!q||g.p.includes(q)),G=all.filter(g=>g.ot>thr+1e-9).sort((x,y)=>x.t<y.t?1:x.t>y.t?-1:y.ot-x.ot);
  const pp={};all.forEach(g=>splitPic(g.p).forEach(n=>{const o=pp[n]||(pp[n]={n,d:0,h:0,d2:0,h2:0});o.d++;o.h+=g.ot;if(g.ot>thr+1e-9){o.d2++;o.h2+=g.ot}}));
- const PS=Object.values(pp).sort((x,y)=>y.h2-x.h2||y.h-x.h);OTC={G,PS,Y,mi,thr};
+ const PS=Object.values(pp).sort((x,y)=>y.h2-x.h2||y.h-x.h);OTC={G:[...G].sort((x,y)=>x.t<y.t?-1:x.t>y.t?1:x.p<y.p?-1:x.p>y.p?1:0),PS,Y,mi,thr};
  $('oInfo').textContent=G.length+' hari-pekerja dengan lembur lebih dari '+fj(thr)+' jam · total '+fj(G.reduce((s,g)=>s+g.ot,0))+' jam lembur'+(auto?'':' · jam hasil bagi otomatis (6-16 Okt) tidak dihitung');
  $('oT1').innerHTML=G.length?'<table><tr><th>Tanggal</th><th>PIC</th><th>Shift</th><th>Hari</th><th class="n">Jam kerja</th><th class="n">Total kerja (jam)</th><th class="n">Lembur (jam)</th><th>Job yang masuk lembur</th></tr>'+G.map(g=>'<tr><td>'+dmy(g.t)+'</td><td>'+esc(g.p)+'</td><td>'+(g.k==='P'?'Pagi':'Malam')+'</td><td>'+dtName(g.dt,g.t)+'</td><td class="n">'+tf(g.first)+' – '+tf(g.last)+'</td><td class="n">'+fj(g.tot)+'</td><td class="n"><b>'+fj(g.ot)+'</b></td><td>'+g.lines.map(l=>'<div>'+esc(l.u)+' <span class="ln">'+l.s+'–'+l.e+' · '+fj(l.ot/60)+' jam</span></div>').join('')+'</td></tr>').join('')+'</table>':'<div class="sub">Tidak ada lembur di atas batas ini.</div>';
  $('oT2').innerHTML=PS.length?'<table><tr><th>Nama</th><th class="n">Hari lembur</th><th class="n">Total lembur (jam)</th><th class="n">Hari lebih dari '+fj(thr)+' jam</th><th class="n">Lembur pada hari itu (jam)</th></tr>'+PS.map(o=>'<tr><td>'+esc(o.n)+'</td><td class="n">'+o.d+'</td><td class="n">'+fj(o.h)+'</td><td class="n">'+o.d2+'</td><td class="n">'+fj(o.h2)+'</td></tr>').join('')+'</table>':'<div class="sub">Belum ada data.</div>'}
 ['oY','oM','oT','oQ','oA'].forEach(i=>{$(i).addEventListener('input',renderOT);$(i).addEventListener('change',renderOT)});
-[['oN1','b'],['oN2','s']].forEach(x=>$(x[0]).addEventListener('change',()=>{const v=parseFloat($(x[0]).value);if(v>=0){NH[x[1]]=v;try{localStorage.setItem('jmnh',JSON.stringify(NH))}catch(e){}renderOT();updPlan()}}));
-function xlsxOT(G,PS,Y,mi,thr){const R={},P=(r,c,v,s)=>{(R[r]||(R[r]={}))[c]=[v,s]};
- P(1,1,'REKAP LEMBUR '+MF[mi]+' '+Y,3);P(2,1,'Jam normal: hari biasa '+fj(NH.b)+' jam, Sabtu '+fj(NH.s)+' jam; pada off day seluruh jam kerja dihitung lembur. Ditampilkan: lembur lebih dari '+fj(thr)+' jam per orang per hari.',4);
- ['TANGGAL','PIC','SHIFT','HARI','JAM KERJA','TOTAL KERJA (JAM)','LEMBUR (JAM)','JOB YANG MASUK LEMBUR'].forEach((h,i)=>P(4,i+1,h,1));
- G.forEach((g,i)=>{const r=5+i;P(r,1,xd(g.t),6);P(r,2,g.p,5);P(r,3,g.k==='P'?'Pagi':'Malam',7);P(r,4,dtName(g.dt,g.t),7);P(r,5,tf(g.first)+' - '+tf(g.last),7);P(r,6,g.tot,8);P(r,7,g.ot,8);P(r,8,g.lines.map(l=>l.u+' ('+l.s+'-'+l.e+', '+fj(l.ot/60)+' jam)').join('\n'),5)});
- let r=7+G.length;P(r,1,'TOTAL LEMBUR PER ORANG',3);r++;['NAMA','HARI LEMBUR','TOTAL LEMBUR (JAM)','HARI > '+fj(thr)+' JAM','LEMBUR HARI ITU (JAM)'].forEach((h,i)=>P(r,i+1,h,1));
- PS.forEach((o,i)=>{const q=r+1+i;P(q,1,o.n,5);P(q,2,o.d,9);P(q,3,Math.round(o.h*100)/100,8);P(q,4,o.d2,9);P(q,5,Math.round(o.h2*100)/100,8)});
+[['oSP','ps'],['oSM','ms'],['oN1','b'],['oN3','br'],['oN2','s']].forEach(x=>$(x[0]).addEventListener('change',()=>{const v=/^o(SP|SM)$/.test(x[0])?$(x[0]).value:parseFloat($(x[0]).value);if(v!==''&&!(v<0)&&v===v){NH[x[1]]=v;try{localStorage.setItem('jmnh',JSON.stringify(NH))}catch(e){}renderOT();updPlan()}}));
+$('oMt').addEventListener('change',()=>{NH.m=$('oMt').value;try{localStorage.setItem('jmnh',JSON.stringify(NH))}catch(e){}renderOT();updPlan()});
+function xlsxOT(G,Y,mi,thr,mode){const R={},HT={},P=(r,c,v,s)=>{(R[r]||(R[r]={}))[c]=[v,s]};
+ P(1,1,'REKAP LEMBUR LEBIH DARI '+fj(thr)+' JAM - '+MF[mi]+' '+Y,7);
+ ['NO','TANGGAL','NAMA','JAM LEMBUR','KETERANGAN PEKERJAAN','STASIUN','LAMPIRAN FOTO'].forEach((h,i)=>P(3,i+1,h,1));HT[3]=32;
+ const uq=a=>[...new Set(a.filter(Boolean))];
+ G.forEach((g,i)=>{const r=4+i,src=mode==='ot'?g.lines:g.items,txt=uq(src.map(x=>x.u)).join(','),sts=uq(src.map(x=>x.st)),stx=sts.length>1?sts.slice(0,-1).join(',')+' & '+sts[sts.length-1]:(sts[0]||'');
+  P(r,1,i+1,2);P(r,2,xd(g.t),3);P(r,3,g.p,4);P(r,4,g.ot,5);P(r,5,txt,4);P(r,6,stx,6);P(r,7,null,8);HT[r]=Math.max(85,Math.ceil(txt.length/80)*16+30)});
  const cx=(ref,v,s)=>v==null||v===''?'<c r="'+ref+'" s="'+s+'"/>':typeof v==='number'?'<c r="'+ref+'" s="'+s+'"><v>'+v+'</v></c>':'<c r="'+ref+'" s="'+s+'" t="inlineStr"><is><t xml:space="preserve">'+xe(v)+'</t></is></c>';
- const rows=Object.keys(R).map(Number).sort((a,b)=>a-b).map(n=>'<row r="'+n+'">'+Object.keys(R[n]).map(Number).sort((a,b)=>a-b).map(c=>cx(CL(c)+n,R[n][c][0],R[n][c][1])).join('')+'</row>').join('');
- const NS='xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"',H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',W=[13,34,9,12,16,14,13,80];
- const sheet=H+'<worksheet '+NS+'><cols>'+W.map((w,i)=>'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>').join('')+'</cols><sheetData>'+rows+'</sheetData></worksheet>';
+ const rows=Object.keys(R).map(Number).sort((a,b)=>a-b).map(n=>'<row r="'+n+'"'+(HT[n]?' ht="'+HT[n]+'" customHeight="1"':'')+'>'+Object.keys(R[n]).map(Number).sort((a,b)=>a-b).map(c=>cx(CL(c)+n,R[n][c][0],R[n][c][1])).join('')+'</row>').join('');
+ const NS='xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"',H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',W=[5,12,34,9,80,32,34];
+ const sheet=H+'<worksheet '+NS+'><sheetViews><sheetView workbookViewId="0"><pane ySplit="3" topLeftCell="A4" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>'+W.map((w,i)=>'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>').join('')+'</cols><sheetData>'+rows+'</sheetData><pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/></worksheet>';
  const xf=(nf,fo,fi,bo,al)=>'<xf numFmtId="'+nf+'" fontId="'+fo+'" fillId="'+fi+'" borderId="'+bo+'" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment '+al+'/></xf>';
- const C='horizontal="center" vertical="top"',L2='horizontal="left" vertical="top" wrapText="1"',fo=(b,i,z)=>'<font>'+(b?'<b/>':'')+(i?'<i/>':'')+'<sz val="'+z+'"/><name val="Calibri"/></font>';
- const styles=H+'<styleSheet '+NS+'><numFmts count="2"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/><numFmt numFmtId="165" formatCode="0.0"/></numFmts><fonts count="4">'+fo(0,0,11)+fo(1,0,11)+fo(1,0,13)+fo(0,1,10)+'</fonts>'+
-  '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF9DC3E6"/><bgColor indexed="64"/></patternFill></fill></fills>'+
-  '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FFBFBFBF"/></left><right style="thin"><color rgb="FFBFBFBF"/></right><top style="thin"><color rgb="FFBFBFBF"/></top><bottom style="thin"><color rgb="FFBFBFBF"/></bottom><diagonal/></border></borders>'+
-  '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="10">'+
-  [xf(0,0,0,0,L2),xf(0,1,2,1,'horizontal="center" vertical="center" wrapText="1"'),xf(0,0,0,0,L2),xf(0,2,0,0,L2),xf(0,3,0,0,'horizontal="left" vertical="top"'),xf(0,0,0,1,L2),xf(164,0,0,1,C),xf(0,0,0,1,C),xf(165,0,0,1,C),xf(1,0,0,1,C)].join('')+'</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+ const V='vertical="center"',fo=(b,z)=>'<font>'+(b?'<b/>':'')+'<sz val="'+z+'"/><name val="Calibri"/></font>';
+ const styles=H+'<styleSheet '+NS+'><numFmts count="2"><numFmt numFmtId="164" formatCode="dd\\-mmm\\-yy"/><numFmt numFmtId="165" formatCode="0.0"/></numFmts><fonts count="3">'+fo(0,11)+fo(1,11)+fo(1,13)+'</fonts>'+
+  '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF9BBB59"/><bgColor indexed="64"/></patternFill></fill></fills>'+
+  '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border><border><left style="thin"><color rgb="FF000000"/></left><right style="thin"><color rgb="FF000000"/></right><top style="thin"><color rgb="FF000000"/></top><bottom style="thin"><color rgb="FF000000"/></bottom><diagonal/></border></borders>'+
+  '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="9">'+
+  [xf(0,0,0,0,'horizontal="left" '+V),xf(0,1,2,1,'horizontal="center" '+V+' wrapText="1"'),xf(0,0,0,1,'horizontal="center" '+V),xf(164,0,0,1,'horizontal="center" '+V),xf(0,0,0,1,'horizontal="left" '+V+' wrapText="1"'),xf(165,0,0,1,'horizontal="right" '+V),xf(0,0,0,1,'horizontal="center" '+V+' wrapText="1"'),xf(0,2,0,0,'horizontal="left" '+V),xf(0,0,0,1,'horizontal="center" '+V)].join('')+'</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
  const RT='http://schemas.openxmlformats.org/officeDocument/2006/relationships',PK='http://schemas.openxmlformats.org/package/2006/relationships',CTX='application/vnd.openxmlformats-officedocument.spreadsheetml.';
  return zip([{n:'[Content_Types].xml',d:H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="'+CTX+'sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="'+CTX+'worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="'+CTX+'styles+xml"/></Types>'},
   {n:'_rels/.rels',d:H+'<Relationships xmlns="'+PK+'"><Relationship Id="rId1" Type="'+RT+'/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
@@ -598,7 +610,7 @@ function xlsxOT(G,PS,Y,mi,thr){const R={},P=(r,c,v,s)=>{(R[r]||(R[r]={}))[c]=[v,
   {n:'xl/_rels/workbook.xml.rels',d:H+'<Relationships xmlns="'+PK+'"><Relationship Id="rId1" Type="'+RT+'/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="'+RT+'/styles" Target="styles.xml"/></Relationships>'},
   {n:'xl/styles.xml',d:styles},{n:'xl/worksheets/sheet1.xml',d:sheet}])}
 $('oX').onclick=async()=>{if(!OTC||!OTC.G.length)return alert('Tidak ada data lembur untuk diunduh');let d=null;try{d=await claude.use('downloads')}catch(e){}if(!d)return alert('Unduh belum tersedia di tampilan ini');
- try{await d.save({filename:'REKAP_LEMBUR_'+MF[OTC.mi]+'_'+OTC.Y+'.xlsx',data:xlsxOT(OTC.G,OTC.PS,OTC.Y,OTC.mi,OTC.thr)})}catch(e){if(!e||e.code!=='declined')alert('Gagal membuat file Excel')}};
+ try{await d.save({filename:'REKAP_LEMBUR_'+MF[OTC.mi]+'_'+OTC.Y+'.xlsx',data:xlsxOT(OTC.G,OTC.Y,OTC.mi,OTC.thr,$('oK').value)})}catch(e){if(!e||e.code!=='declined')alert('Gagal membuat file Excel')}};
 /* ===== impor data dari artifact ===== */
 function chkImp(){const b=$('impBox');if(!b||!SEED.imp)return;let done=false;try{done=localStorage.getItem('jmimp')==='1'}catch(e){}
  const ids=new Set(jobs.map(j=>j.id)),miss=Object.keys(SEED.imp.jobs).filter(i=>!ids.has(i));b.classList.toggle('hid',!DB||done||!miss.length);$('impN').textContent=miss.length}
