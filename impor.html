@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Impor Data</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#eef1f4;--ink:#14202b;--mut:#51606d;--line:#c9d2da;--ac:#2f5d8a;--r:#b3261e;--g:#2a7048}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.4 'Barlow Semi Condensed',system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:16px 14px 40px}h1{font-size:28px;margin:6px 0 4px}.sub{color:var(--mut);font-size:15px}
+.card{background:#fff;border:1px solid var(--line);border-radius:4px;padding:12px 13px;margin-top:12px}
+.btn{display:block;width:100%;border:0;cursor:pointer;background:var(--ac);color:#fff;font-weight:700;font-size:18px;font-family:inherit;padding:13px;border-radius:4px;margin-top:12px}.btn[disabled]{opacity:.5}
+:focus-visible{outline:3px solid #f0a500;outline-offset:2px}
+label{display:block;margin-top:10px;font-weight:500}input[type=email],input[type=password],input[type=file]{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:4px;margin-top:4px;background:#fff}
+.it{display:grid;grid-template-columns:26px 1fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}.it input{width:22px;height:22px;margin:2px 0 0}
+.it b{display:block}.note{background:#fff4d6;border:1px solid #e3c56a;border-radius:4px;padding:8px 10px;font-size:15px;margin-top:12px}
+.bar{height:10px;background:#dde3e8;border-radius:2px;margin-top:10px}.bar i{display:block;height:100%;background:var(--g);width:0}
+#log{font-size:15px;white-space:pre-wrap;margin-top:10px}.er{color:var(--r)}
+</style></head><body><main id="app"><h1>Impor data</h1><p class="sub">Alat admin untuk memasukkan isi Data_Impor_Sistem_Baru.xlsx ke Firestore. Hanya menulis atau menimpa dokumen, tidak menghapus.</p><div id="st"></div></main>
+<script type="module">
+const FBU='https://www.gstatic.com/firebasejs/10.14.1/',XL='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+const $=s=>document.querySelector(s),E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let C={};try{C=JSON.parse(localStorage.getItem('jmcfg')||'{}')}catch(e){}
+const sd=n=>typeof n==='number'?new Date(Math.round((n-25569)*864e5)).toISOString().slice(0,10):(n||null);
+const nz=v=>v===undefined||v===''?null:v,bl=v=>String(v||'').trim().toLowerCase()==='ya',slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+// Pemetaan sheet Excel ke koleksi Firestore. t = dokumen yang ditulis: [koleksi, id, data]
+const PLAN=[
+ {s:'mesin',c:'mesin',d:'Master mesin (261)',t:(r,x)=>[['mesin',r.ID_Mesin,{id:r.ID_Mesin,area:r.Area,nama:r.Nama_Operasional||r.Nama_Mesin,nama_mesin:nz(r.Nama_Mesin),vital:bl(r.Vital),sumber_hm:nz(r.Sumber_HM),daya_kw:nz(r.Daya_kW),arus_a:nz(r.Arus_A),merk:nz(r.Merk),rpm:nz(r.RPM),tipe_starter:nz(r.Tipe_Starter),mccb_a:nz(r.MCCB_A),kontaktor_1:nz(r.Kontaktor_1),kontaktor_2:nz(r.Kontaktor_2),kontaktor_3:nz(r.Kontaktor_3),thermal_min_a:nz(r.Thermal_Min_A),thermal_max_a:nz(r.Thermal_Max_A),setting_thermal_a:nz(r.Setting_Thermal_A),unit_induk:nz(r.ID_Unit_Induk),catatan:nz(r.Catatan),...(x.hm[r.ID_Mesin]?{hm:x.hm[r.ID_Mesin][1],hm_tgl:x.hm[r.ID_Mesin][0],hm_sementara:true}:{})}]]},
+ {s:'karyawan',c:'karyawan',d:'Karyawan (NPK dan nama)',t:r=>[['karyawan',String(r.NPK),{npk:String(r.NPK),nama:r.Nama,bagian:nz(r.Bagian),shift:nz(r.Shift),aktif:bl(r.Aktif)}]]},
+ {s:'baseline_sparepart',c:'sparepart_standar',d:'Standar dan servis terakhir sparepart',t:r=>r.ID_Mesin?[['sparepart_standar',r.ID_Mesin+'_'+slug(r.Kelompok_Sparepart),{mesin_id:r.ID_Mesin,komponen:r.Kelompok_Sparepart,standar_min_hm:nz(r.Standar_Min_HM),standar_hm:nz(r.Standar_HM),tgl_service_terakhir:sd(r.Tgl_Service_Terakhir),hm_service_terakhir:nz(r.HM_Service_Terakhir)}]]:[]},
+ {s:'jam_olah_harian',c:'jam_olah',d:'Jam olah harian (CBC)',t:r=>[['jam_olah',sd(r.Tanggal),{tanggal:sd(r.Tanggal),jam:r.Jam_Olah}]]},
+ {s:'alat_berat_kendaraan',c:'alat',d:'Alat berat dan kendaraan (7)',t:r=>{let b={};try{b=JSON.parse(r.Bobot_Job_Persen||'{}')}catch(e){}return[['alat',r.ID_Mesin,{id:r.ID_Mesin,nama_artifact:r.Nama_Di_Artifact,hm_awal:nz(r.HM_Awal),solar_awal:nz(r.Solar_Awal),hm_ganti_oli:nz(r.HM_Ganti_Oli_Terakhir),jobs:String(r.Daftar_Job||'').split(';').map(s=>s.trim()).filter(Boolean),bobot:b}]]}},
+ {s:'alat_log',c:'alat_log',d:'Catatan job per shift alat berat',t:(r,x,i)=>[['alat_log',r.ID_Mesin+'_'+sd(r.Tanggal)+'_'+i,{mesin_id:r.ID_Mesin,tanggal:sd(r.Tanggal),hm:nz(r.HM),uraian:nz(r.Uraian_Job),operator:nz(r.Operator),shift_flag:nz(r.Shift_Flag),jam_operator:nz(r.Jam_Operator),jam_mulai:nz(r.Jam_Mulai),jam_selesai:nz(r.Jam_Selesai),id_shift:nz(r.ID_Shift)}]]},
+ {s:'alat_solar',c:'alat_solar',d:'Catatan solar harian',t:r=>[['alat_solar',r.ID_Mesin+'_'+sd(r.Tanggal),{mesin_id:r.ID_Mesin,tanggal:sd(r.Tanggal),solar:r.Solar}]]},
+ {s:'hm_harian_arsip',c:'hm_arsip',d:'Arsip HM harian Jan-Nov (10.086)',off:true,t:r=>r.ID_Mesin?[['hm_arsip',r.ID_Mesin+'_'+sd(r.Tanggal),{mesin_id:r.ID_Mesin,tanggal:sd(r.Tanggal),hm:r.HM,catatan:nz(r.Catatan)}]]:[]}];
+window.__PLAN=PLAN;window.__sd=sd;
+function hmSementara(W){const o={};const put=(rows,df)=>rows.forEach(r=>{if(r.ID_Mesin&&typeof r.HM==='number'){const d=sd(r.Tanggal);if(!o[r.ID_Mesin]||d>=o[r.ID_Mesin][0])o[r.ID_Mesin]=[d,r.HM]}});put(W.hm_harian_arsip||[]);put(W.alat_log||[]);return o}
+function rows(wb,n){return wb.Sheets[n]?XLSX.utils.sheet_to_json(wb.Sheets[n],{raw:true,defval:undefined}):[]}
+function login(U,au){return new Promise(res=>{$('#st').innerHTML='<form class="card" id="lg"><b>Masuk sebagai admin</b><label>Email<input id="e" type="email" autocomplete="username"></label><label>Password<input id="p" type="password" autocomplete="current-password"></label><button class="btn">Masuk</button><p id="m" class="sub"></p></form>';
+ $('#lg').onsubmit=async ev=>{ev.preventDefault();try{await U.signInWithEmailAndPassword(au,$('#e').value.trim(),$('#p').value)}catch(x){$('#m').textContent='Email atau password salah.'}}})}
+async function main(){
+ if(!C.firebase||!C.firebase.apiKey){$('#st').innerHTML='<div class="note">Firebase belum tersambung. Buka halaman rekap, isi Sambungan, lalu buka halaman ini lagi.</div>';return}
+ const[A,F,U]=await Promise.all([import(FBU+'firebase-app.js'),import(FBU+'firebase-firestore.js'),import(FBU+'firebase-auth.js')]);
+ const ap=A.initializeApp(C.firebase),db=F.getFirestore(ap),au=U.getAuth(ap);
+ await new Promise(res=>U.onAuthStateChanged(au,u=>{if(u)res();else login(U,au)}));
+ await new Promise((res,rej)=>{const s=document.createElement('script');s.src=XL;s.onload=res;s.onerror=()=>rej(new Error('Gagal memuat pembaca Excel (SheetJS)'));document.head.appendChild(s)});
+ $('#st').innerHTML='<div class="card"><label>Pilih file Data_Impor_Sistem_Baru.xlsx<input id="fl" type="file" accept=".xlsx"></label></div><div id="pv"></div>';
+ $('#fl').onchange=async e=>{const f=e.target.files[0];if(!f)return;
+  const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),W={};PLAN.forEach(p=>W[p.s]=rows(wb,p.s));
+  const x={hm:hmSementara(W)},docs=PLAN.map(p=>W[p.s].flatMap((r,i)=>p.t(r,x,i)));
+  $('#pv').innerHTML='<div class="card">'+PLAN.map((p,i)=>`<label class="it"><input type="checkbox" data-i="${i}" ${p.off?'':'checked'} ${docs[i].length?'':'disabled'}><span><b>${E(p.d)}</b><span class="sub">Sheet ${p.s}, ${W[p.s].length} baris, ${docs[i].length} dokumen ke koleksi ${p.c}</span></span></label>`).join('')+'</div><div class="note">Paket gratis Firebase (Spark) membatasi sekitar 20.000 penulisan per hari. Total semua sheet melebihi 17.000, jadi biarkan arsip HM harian tidak dicentang dulu, dan jangan mengulang impor berkali-kali dalam sehari. Cek batas terbaru di Firebase console.</div><div class="note">HM mesin vital diisi sementara dari catatan terakhir di file (ditandai hm_sementara). Ganti dengan HM dari meter saat tanggal mulai.</div><button class="btn" id="go">Impor yang dicentang</button><div class="bar"><i id="pb"></i></div><div id="log"></div>';
+  $('#go').onclick=async()=>{const sel=[...document.querySelectorAll('#pv .it input:checked')].map(c=>+c.dataset.i);if(!sel.length)return;
+   if(!confirm('Impor '+sel.reduce((a,i)=>a+docs[i].length,0)+' dokumen ke Firestore? Dokumen dengan ID yang sama akan ditimpa.'))return;
+   $('#go').disabled=true;const all=sel.flatMap(i=>docs[i]),L=$('#log');let done=0;L.textContent='';
+   try{for(let k=0;k<all.length;k+=400){const b=F.writeBatch(db);all.slice(k,k+400).forEach(([c,id,d])=>b.set(F.doc(db,c,id),d));await b.commit();done=Math.min(all.length,k+400);$('#pb').style.width=done/all.length*100+'%';L.textContent=done+' dari '+all.length+' dokumen tersimpan.'}
+    L.textContent+='\nSelesai.'}catch(er){L.innerHTML='<span class="er">Berhenti di '+done+' dari '+all.length+': '+E(er.message||er)+'</span>\nImpor bisa diulang, dokumen yang sudah masuk hanya ditimpa.';$('#go').disabled=false}}}}
+main().catch(e=>{$('#st').innerHTML='<div class="note">Gagal: '+E(e.message||e)+'</div>'});
+</script></body></html>
