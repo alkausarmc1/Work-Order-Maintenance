@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Halaman Mesin</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#eef1f4;--ink:#14202b;--mut:#51606d;--line:#c9d2da;--card:#fff;--ac:#2f5d8a;--r:#b3261e;--y:#a86400;--g:#2a7048}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.4 'Barlow Semi Condensed',system-ui,sans-serif}
+main{max-width:560px;margin:0 auto;padding:16px 14px 40px}
+h1{font-size:28px;line-height:1.1;margin:6px 0 2px;font-weight:700}h2{font-size:19px;margin:24px 0 8px;font-weight:700}
+.sub{color:var(--mut);font-size:15px}.hm{font-variant-numeric:tabular-nums;font-weight:500}
+a{color:var(--ac)}.top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.btn{display:block;width:100%;border:0;cursor:pointer;text-align:center;background:var(--ac);color:#fff;text-decoration:none;font-weight:700;font-size:18px;font-family:inherit;line-height:1.2;padding:13px;border-radius:4px;margin-top:12px}
+:focus-visible{outline:3px solid #f0a500;outline-offset:2px}
+.card,.sp,.rw{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:12px 13px}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.row b{font-size:18px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:14px 0 4px}
+.tabs button{font-weight:700;font-size:17px;font-family:inherit;line-height:1.2;padding:13px 4px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:4px;cursor:pointer;min-height:50px}
+.tabs button[aria-selected=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tag{font-weight:700;font-size:15px;color:var(--c);border:1.5px solid var(--c);border-radius:3px;padding:0 7px;white-space:nowrap}
+.sp{--c:var(--g);border-left:6px solid var(--c)}.k-r{--c:var(--r)}.k-y{--c:var(--y)}.k-g{--c:var(--g)}.k-x{--c:var(--mut)}
+.gauge{position:relative;height:10px;background:#dde3e8;border-radius:2px;margin:11px 0 7px;border-right:3px solid var(--ink)}
+.gauge i{position:absolute;inset:0 auto 0 0;background:var(--c)}.gauge u{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink)}
+.dl{display:grid;grid-template-columns:1fr 1fr;gap:0}.dl div{padding:9px 0;border-bottom:1px solid var(--line)}.dl div:nth-child(odd){color:var(--mut)}.dl div:nth-child(even){text-align:right;font-weight:500}
+.jn{font-size:14px;border:1px solid var(--line);border-radius:3px;padding:0 6px}
+.note{background:#fff4d6;border:1px solid #e3c56a;border-radius:4px;padding:8px 10px;font-size:15px;margin-bottom:12px}
+.ok{background:#e3f1e8;border:1px solid #8fc3a2}.er{background:#fbe4e1;border:1px solid #e0958e}
+label{display:block;margin-top:10px;font-weight:500}input{width:100%;font:inherit;padding:11px;border:1px solid var(--line);border-radius:4px;margin-top:4px;background:#fff}
+.chk{display:flex;gap:8px;align-items:center;margin-top:10px}.chk input{width:22px;height:22px;margin:0}
+.pick a{display:block;text-decoration:none;color:var(--ink)}.empty{color:var(--mut);padding:10px 0}
+</style></head><body><main id="app"><p class="sub">Memuat...</p></main>
+<script type="module">
+const FBU='https://www.gstatic.com/firebasejs/10.14.1/';
+const DEMO={"mesin":[{"id":"MS-PR-003","nama":"Digester No. 1","area":"PRESS","hm":2878,"hm_tgl":"2026-11-07","daya_kw":45,"arus_a":85,"merk":"Motology","rpm":1475,"tipe_starter":"Star - Delta","mccb_a":200,"kontaktor_1":"LC1D65","kontaktor_2":"LC1D65","kontaktor_3":"LC1D50","thermal_min_a":37,"thermal_max_a":50,"setting_thermal_a":48},{"id":"MS-PR-009","nama":"Press No. 1","area":"PRESS","hm":2878,"hm_tgl":"2026-11-07","daya_kw":30,"arus_a":58,"merk":"Motology","rpm":1470,"tipe_starter":"Star - Delta","mccb_a":100,"kontaktor_1":"LC1D38","kontaktor_2":"LC1D38","kontaktor_3":"LC1D32","thermal_min_a":22,"thermal_max_a":32,"setting_thermal_a":28.5},{"id":"MS-PH-004","nama":"Turbin 2","area":"POWER HOUSE","hm":11936,"hm_tgl":"2026-11-07","daya_kw":null,"arus_a":null,"merk":null,"rpm":null,"tipe_starter":null,"mccb_a":null,"kontaktor_1":null,"kontaktor_2":null,"kontaktor_3":null,"thermal_min_a":null,"thermal_max_a":null,"setting_thermal_a":null},{"id":"MS-KR-010","nama":"Ripple Mill No. 1","area":"KERNEL","hm":27729,"hm_tgl":"2026-11-07","daya_kw":1.5,"arus_a":2.89,"merk":null,"rpm":1420,"tipe_starter":"Star - Delta","mccb_a":30,"kontaktor_1":"AX25-30-10","kontaktor_2":"A12-30-01","kontaktor_3":"A9-30-01","thermal_min_a":18,"thermal_max_a":25,"setting_thermal_a":18},{"id":"MS-PR-010","nama":"Press No. 2","area":"PRESS","hm":21399,"hm_tgl":"2026-11-07","daya_kw":30,"arus_a":33.1,"merk":"Elektrim","rpm":1470,"tipe_starter":"Star - Delta","mccb_a":100,"kontaktor_1":"A40-30-10","kontaktor_2":"A40-30-01","kontaktor_3":"A30-30-01","thermal_min_a":29,"thermal_max_a":42,"setting_thermal_a":29}],"sp":[{"mesin_id":"MS-PR-003","komponen":"LONG & SHORT ARMS DIGESTER","standar_min_hm":null,"standar_hm":2500,"hm_service_terakhir":0,"tgl_service_terakhir":null},{"mesin_id":"MS-PR-003","komponen":"EXPELLER ARMS DIGESTER","standar_min_hm":null,"standar_hm":2500,"hm_service_terakhir":0,"tgl_service_terakhir":null},{"mesin_id":"MS-PR-009","komponen":"PRESS CAGE PRESS","standar_min_hm":2000,"standar_hm":2400,"hm_service_terakhir":2380,"tgl_service_terakhir":"2026-10-08"},{"mesin_id":"MS-PR-009","komponen":"SCREW PRESS","standar_min_hm":600,"standar_hm":1000,"hm_service_terakhir":2702,"tgl_service_terakhir":"2026-10-27"},{"mesin_id":"MS-PH-004","komponen":"STEAM TURBINE","standar_min_hm":null,"standar_hm":6000,"hm_service_terakhir":10911.5,"tgl_service_terakhir":"2026-09-13"},{"mesin_id":"MS-KR-010","komponen":"RIPPLE MILL ROTOR BAR","standar_min_hm":null,"standar_hm":1000,"hm_service_terakhir":27613.2,"tgl_service_terakhir":"2026-08-30"},{"mesin_id":"MS-KR-010","komponen":"RIPPLE MILL STATOR BAR","standar_min_hm":null,"standar_hm":1000,"hm_service_terakhir":27613.2,"tgl_service_terakhir":"2026-08-30"},{"mesin_id":"MS-PR-010","komponen":"SCREW PRESS","standar_min_hm":600,"standar_hm":1000,"hm_service_terakhir":21386.2,"tgl_service_terakhir":"2026-11-03"},{"mesin_id":"MS-PR-010","komponen":"PRESS CAGE PRESS","standar_min_hm":2000,"standar_hm":2400,"hm_service_terakhir":21386.2,"tgl_service_terakhir":"2026-11-03"}],"pg":[{"mesin_id":"MS-PR-010","komponen":"PRESS CAGE PRESS","tanggal":"2026-11-03","hm":21386.2,"hm_sebelumnya":19929.8,"ketahanan_hm":1456,"alasan":null},{"mesin_id":"MS-PR-010","komponen":"SCREW PRESS","tanggal":"2026-11-03","hm":21386.2,"hm_sebelumnya":21200.2,"ketahanan_hm":186,"alasan":null},{"mesin_id":"MS-PR-009","komponen":"SCREW PRESS","tanggal":"2026-10-27","hm":2702,"hm_sebelumnya":2104,"ketahanan_hm":598,"alasan":null},{"mesin_id":"MS-PR-010","komponen":"SCREW PRESS","tanggal":"2026-10-22","hm":21200.2,"hm_sebelumnya":20628.2,"ketahanan_hm":572,"alasan":null},{"mesin_id":"MS-PR-009","komponen":"PRESS CAGE PRESS","tanggal":"2026-10-08","hm":2380,"hm_sebelumnya":0,"ketahanan_hm":2380,"alasan":null},{"mesin_id":"MS-PR-010","komponen":"SCREW PRESS","tanggal":"2026-09-16","hm":20628.2,"hm_sebelumnya":19929.8,"ketahanan_hm":698,"alasan":null},{"mesin_id":"MS-PH-004","komponen":"STEAM TURBINE","tanggal":"2026-09-13","hm":10911.5,"hm_sebelumnya":5068.1,"ketahanan_hm":5843,"alasan":null},{"mesin_id":"MS-KR-010","komponen":"RIPPLE MILL ROTOR BAR","tanggal":"2026-08-30","hm":27613.2,"hm_sebelumnya":27023.3,"ketahanan_hm":590,"alasan":null},{"mesin_id":"MS-KR-010","komponen":"RIPPLE MILL STATOR BAR","tanggal":"2026-08-30","hm":27613.2,"hm_sebelumnya":27234.4,"ketahanan_hm":379,"alasan":null},{"mesin_id":"MS-KR-010","komponen":"RIPPLE MILL ROTOR BAR","tanggal":"2026-07-17","hm":27023.3,"hm_sebelumnya":26798.1,"ketahanan_hm":225,"alasan":null},{"mesin_id":"MS-KR-010","komponen":"RIPPLE MILL STATOR BAR","tanggal":"2026-07-17","hm":27023.3,"hm_sebelumnya":26798.1,"ketahanan_hm":225,"alasan":null},{"mesin_id":"MS-PR-010","komponen":"PRESS CAGE PRESS","tanggal":"2026-07-10","hm":19929.8,"hm_sebelumnya":17983.8,"ketahanan_hm":1946,"alasan":null},{"mesin_id":"MS-PR-010","komponen":"SCREW PRESS","tanggal":"2026-07-10","hm":19382.8,"hm_sebelumnya":18621.8,"ketahanan_hm":761,"alasan":null},{"mesin_id":"MS-KR-010","komponen":"RIPPLE MILL ROTOR BAR","tanggal":"2026-06-27","hm":26798.1,"hm_sebelumnya":26474.5,"ketahanan_hm":324,"alasan":null},{"mesin_id":"MS-KR-010","komponen":"RIPPLE MILL ROTOR BAR","tanggal":"2026-06-01","hm":26474.5,"hm_sebelumnya":26451.7,"ketahanan_hm":23,"alasan":null},{"mesin_id":"MS-KR-010","komponen":"RIPPLE MILL STATOR BAR","tanggal":"2026-06-01","hm":26496.1,"hm_sebelumnya":26287.5,"ketahanan_hm":209,"alasan":null},{"mesin_id":"MS-PR-010","komponen":"SCREW PRESS","tanggal":"2026-06-01","hm":18621.8,"hm_sebelumnya":17983.8,"ketahanan_hm":638,"alasan":null},{"mesin_id":"MS-KR-010","komponen":"RIPPLE MILL ROTOR BAR","tanggal":"2026-05-28","hm":26451.7,"hm_sebelumnya":25300.4,"ketahanan_hm":1151,"alasan":null},{"mesin_id":"MS-PR-009","komponen":"SCREW PRESS","tanggal":"2026-05-23","hm":2104,"hm_sebelumnya":1487,"ketahanan_hm":617,"alasan":null},{"mesin_id":"MS-PR-009","komponen":"SCREW PRESS","tanggal":"2026-05-21","hm":1487,"hm_sebelumnya":831,"ketahanan_hm":656,"alasan":null}]};
+let C={};try{C=JSON.parse(localStorage.getItem('jmcfg')||'{}')}catch(e){}
+const ID=new URLSearchParams(location.search).get('id'),app=document.getElementById('app'),$=s=>document.querySelector(s);
+const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const N=x=>x==null||x===''||isNaN(x)?'-':String(Math.round(+x));
+const D=s=>{if(!s)return'-';const d=new Date(s);return isNaN(d)?E(s):d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})};
+const cap=s=>{s=String(s||'').toLowerCase();return s.charAt(0).toUpperCase()+s.slice(1)};
+const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+function login(U,au){app.innerHTML='<form class="card" id="lg"><b>Masuk</b><label>Email<input id="e" type="email" autocomplete="username"></label><label>Password<input id="p" type="password" autocomplete="current-password"></label><button class="btn">Masuk</button><p id="m" class="sub"></p></form>';
+ $('#lg').onsubmit=async ev=>{ev.preventDefault();try{await U.signInWithEmailAndPassword(au,$('#e').value.trim(),$('#p').value)}catch(x){$('#m').textContent='Email atau password salah.'}}}
+async function connect(){
+ if(!C.firebase||!C.firebase.apiKey)return{demo:true,mesin:async id=>DEMO.mesin.find(m=>m.id===id)||null,vital:async()=>DEMO.mesin,sp:async id=>DEMO.sp.filter(s=>s.mesin_id===id),pg:async id=>DEMO.pg.filter(r=>r.mesin_id===id),simpan:async()=>{}};
+ const[A,F,U]=await Promise.all([import(FBU+'firebase-app.js'),import(FBU+'firebase-firestore.js'),import(FBU+'firebase-auth.js')]);
+ const ap=A.initializeApp(C.firebase),db=F.getFirestore(ap),au=U.getAuth(ap);
+ await new Promise(res=>U.onAuthStateChanged(au,u=>u?res():login(U,au)));
+ const all=async(c,f,v)=>(await F.getDocs(f?F.query(F.collection(db,c),F.where(f,'==',v)):F.collection(db,c))).docs.map(d=>({id:d.id,...d.data()}));
+ return{mesin:async id=>{const s=await F.getDoc(F.doc(db,'mesin',id));return s.exists()?{id,...s.data()}:null},vital:()=>all('mesin','vital',true),sp:id=>all('sparepart_standar','mesin_id',id),pg:id=>all('penggantian','mesin_id',id),
+  simpan:async(m,d)=>{await F.setDoc(F.doc(db,'hm_log',m.id+'_'+d.tanggal),{mesin_id:m.id,tanggal:d.tanggal,hm:d.hm,dicatat_oleh:d.oleh||au.currentUser.email,catatan:d.catatan||'',dibuat:F.serverTimestamp()});
+   if(!m.hm_tgl||d.tanggal>=m.hm_tgl)await F.updateDoc(F.doc(db,'mesin',m.id),{hm:d.hm,hm_tgl:d.tanggal})}}}
+function stat(s,h){const u=h-s.hm_service_terakhir,sd=s.standar_hm;
+ if(!sd)return{u,k:'x',t:'Standar belum diisi',p:0,l:0,m:'Umur terpakai '+N(u)+' HM. Isi standar HM agar status terhitung.'};
+ const lo=s.standar_min_hm||.8*sd,k=u>=sd?'r':u>=lo?'y':'g';
+ return{u,k,t:{r:'Lewat standar',y:'Segera ganti',g:'Aman'}[k],p:Math.min(1,u/sd),l:lo/sd,r:u/sd,m:'Terpakai '+N(u)+' dari '+N(sd)+' HM. '+(u>=sd?'Lewat '+N(u-sd)+' HM.':'Sisa '+N(sd-u)+' HM.')}}
+const SPEK=[['Daya','daya_kw',' kW'],['Arus','arus_a',' A'],['Merk','merk',''],['Putaran','rpm',' RPM'],['Tipe starter','tipe_starter',''],['MCCB','mccb_a',' A'],['Kontaktor 1','kontaktor_1',''],['Kontaktor 2','kontaktor_2',''],['Kontaktor 3','kontaktor_3',''],['Setting thermal','setting_thermal_a',' A']];
+function pSp(m,sp,pg){
+ const it=sp.map(s=>{const t=stat(s,+m.hm),v=pg.filter(p=>String(p.komponen).toUpperCase()===String(s.komponen).toUpperCase()&&p.ketahanan_hm>0).map(p=>p.ketahanan_hm),av=v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):0;
+  return{o:{r:0,y:1,g:2,x:3}[t.k],p:t.r||0,h:`<li class="sp k-${t.k}"><div class="row"><b>${E(cap(s.komponen))}</b><span class="tag">${t.t}</span></div><div class="gauge"><i style="width:${t.p*100}%"></i>${t.l&&t.l<1?`<u style="left:${t.l*100}%"></u>`:''}</div><div>${t.m}</div><div class="sub">Dipasang pada HM ${N(s.hm_service_terakhir)}, ${D(s.tgl_service_terakhir)}.${av?'<br>Rata-rata bertahan '+av+' HM dari '+v.length+' penggantian.':''}</div></li>`}}).sort((a,b)=>a.o-b.o||b.p-a.p);
+ const rg=[...pg].sort((a,b)=>String(b.tanggal).localeCompare(String(a.tanggal)));
+ return`<h2>Sisa HM sparepart</h2>${it.length?'<ul>'+it.map(i=>i.h).join('')+'</ul>':'<p class="empty">Belum ada sparepart yang dipantau untuk mesin ini.</p>'}
+ <h2>Riwayat penggantian</h2>${rg.length?'<ul>'+rg.map(p=>`<li class="card"><div class="row"><b>${E(cap(p.komponen))}</b><span class="sub">${D(p.tanggal)}</span></div><div>Diganti pada HM ${N(p.hm)}${p.hm_sebelumnya?', bertahan <b>'+N(p.ketahanan_hm||p.hm-p.hm_sebelumnya)+' HM</b>':''}.</div>${p.alasan?'<div class="sub">Alasan: '+E(p.alasan)+'</div>':''}</li>`).join('')+'</ul>':'<p class="empty">Belum ada riwayat penggantian.</p>'}`}
+function pSpek(m){const r=SPEK.filter(s=>m[s[1]]!=null&&m[s[1]]!=='').map(s=>`<div>${s[0]}</div><div>${E(m[s[1]])}${s[2]}</div>`);
+ if(m.thermal_min_a!=null)r.push('<div>Rentang thermal</div><div>'+E(m.thermal_min_a)+' sampai '+E(m.thermal_max_a)+' A</div>');
+ return`<h2>Spesifikasi mesin</h2><div class="card"><div class="dl"><div>ID mesin</div><div>${E(m.id)}</div><div>Area</div><div>${E(cap(m.area))}</div>${r.join('')}</div></div>${r.length?'':'<p class="empty">Spesifikasi belum diisi untuk mesin ini.</p>'}`}
+function pHm(m,api,done){
+ return`<h2>Input HM</h2><form class="card" id="hf"><div class="sub">HM terakhir ${N(m.hm)} (${D(m.hm_tgl)})</div><label>HM baru<input id="hv" inputmode="decimal" autocomplete="off" required></label><label>Tanggal<input id="ht" type="date" value="${today()}" required></label><label>Nama pencatat<input id="hn" value="${E(localStorage.getItem('hmoleh')||'')}" autocomplete="name"></label><label>Catatan (opsional)<input id="hc"></label><div id="hk"></div><div id="hx" class="note er" hidden></div><button class="btn">Simpan HM</button></form>`}
+function bindHm(m,api,redraw){const f=$('#hf');if(!f)return;let warn=false;
+ f.onsubmit=async ev=>{ev.preventDefault();const hx=$('#hx');hx.hidden=true;
+  const v=parseFloat($('#hv').value.replace(',','.')),t=$('#ht').value,er=x=>{hx.textContent=x;hx.hidden=false};
+  if(isNaN(v)||v<0)return er('Isi HM dengan angka.');
+  if(t>today())return er('Tanggal tidak boleh lebih dari hari ini.');
+  if(v<+m.hm)return er('HM baru ('+N(v)+') lebih kecil dari HM terakhir ('+N(m.hm)+'). Cek lagi angkanya. Kalau meter diganti atau direset, minta admin memakai Reset meter.');
+  const hari=Math.max(1,Math.round((new Date(t)-new Date(m.hm_tgl))/864e5));
+  if(v-m.hm>24*hari+8&&!$('#ok')){$('#hk').innerHTML='<div class="note">Naik '+N(v-m.hm)+' HM dalam '+hari+' hari, lebih dari 24 jam per hari. <label class="chk"><input type="checkbox" id="ok">Angka sudah benar</label></div>';return}
+  if($('#ok')&&!$('#ok').checked)return er('Centang bahwa angka sudah benar, atau perbaiki HM-nya.');
+  const oleh=$('#hn').value.trim();localStorage.setItem('hmoleh',oleh);
+  try{await api.simpan(m,{hm:v,tanggal:t,oleh,catatan:$('#hc').value.trim()});if(!m.hm_tgl||t>=m.hm_tgl){m.hm=v;m.hm_tgl=t}redraw('HM '+N(v)+' tersimpan.')}catch(x){er('Gagal menyimpan: '+(x.message||x))}}}
+async function show(api){
+ const demo=api.demo?'<div class="note">Mode contoh: belum tersambung ke Firebase. Data hanya contoh dan HM yang diinput tidak disimpan.</div>':'';
+ if(!ID){const l=(await api.vital()).sort((a,b)=>(a.nama||'').localeCompare(b.nama||''));
+  app.innerHTML=demo+'<h1>Pilih mesin</h1><input id="f" placeholder="Cari nama atau ID mesin" aria-label="Cari mesin" style="margin:10px 0"><ul class="pick" id="l"></ul>';
+  const r=()=>{const f=$('#f').value.toLowerCase();$('#l').innerHTML=l.filter(m=>(m.nama+m.id).toLowerCase().includes(f)).map(m=>`<li class="card"><a href="?id=${encodeURIComponent(m.id)}"><div class="row"><b>${E(m.nama)}</b><span class="sub">${E(m.id)}</span></div><div class="sub">${E(cap(m.area))}</div></a></li>`).join('')||'<li class="empty">Tidak ada mesin yang cocok.</li>'};
+  $('#f').oninput=r;r();return}
+ const m=await api.mesin(ID);
+ if(!m){app.innerHTML=demo+'<h1>Mesin tidak ditemukan</h1><p class="sub">ID '+E(ID)+' belum ada di database. Cek kode pada barcode.</p><a href="'+location.pathname+'">Pilih mesin lain</a>';return}
+ const[sp,pg]=await Promise.all([api.sp(ID),api.pg(ID)]);
+ let tab=['hm','spek','sp'].includes(location.hash.slice(1))?location.hash.slice(1):'sp',msg='';
+ const draw=()=>{const T=[['hm','Input HM'],['spek','Spesifikasi'],['sp','Sparepart']];
+  app.innerHTML=demo+`<div class="top"><a href="${location.pathname}">Semua mesin</a><span class="sub">${E(m.id)}</span></div><h1>${E(m.nama)}</h1><div class="sub">${E(cap(m.area))}</div>
+  <div class="card" style="margin-top:12px"><div class="sub">HM sekarang</div><div class="hm" style="font-size:34px;line-height:1.1">${N(m.hm)}</div><div class="sub">Diperbarui ${D(m.hm_tgl)}</div></div>
+  <div class="tabs" role="tablist">${T.map(t=>`<button role="tab" data-t="${t[0]}" aria-selected="${t[0]===tab}">${t[1]}</button>`).join('')}</div>
+  ${msg?'<div class="note ok">'+E(msg)+'</div>':''}${tab==='sp'?pSp(m,sp,pg):tab==='spek'?pSpek(m):pHm(m,api)}`;
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;msg='';history.replaceState(null,'','#'+tab);draw()});
+  if(tab==='hm')bindHm(m,api,s=>{msg=s;tab='sp';draw()})};
+ draw()}
+connect().then(show).catch(e=>{app.innerHTML='<h1>Gagal memuat data</h1><p class="sub">'+E(e.message||e)+'</p>'});
+</script></body></html>
