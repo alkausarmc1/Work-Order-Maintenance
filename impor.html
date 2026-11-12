@@ -42,7 +42,11 @@ async function main(){
  const ap=A.initializeApp(C.firebase),db=F.getFirestore(ap),au=U.getAuth(ap);
  await new Promise(res=>U.onAuthStateChanged(au,u=>{if(u)res();else login(U,au)}));
  await new Promise((res,rej)=>{const s=document.createElement('script');s.src=XL;s.onload=res;s.onerror=()=>rej(new Error('Gagal memuat pembaca Excel (SheetJS)'));document.head.appendChild(s)});
- $('#st').innerHTML='<div class="card"><label>Pilih file Data_Impor_Sistem_Baru.xlsx<input id="fl" type="file" accept=".xlsx"></label></div><div id="pv"></div>';
+ $('#st').innerHTML='<div class="card"><label>Pilih file Data_Impor_Sistem_Baru.xlsx<input id="fl" type="file" accept=".xlsx"></label></div><div id="pv"></div><div class="card"><label>HM alat berat dan kendaraan: pilih file Impor_HM_Alat.json<input id="fj" type="file" accept=".json"></label><div id="pj"></div></div>';
+ $('#fj').onchange=async e=>{const f=e.target.files[0];if(!f)return;let D;try{D=JSON.parse(await f.text())}catch(x){$('#pj').innerHTML='<div class="note">File JSON tidak terbaca.</div>';return}
+  const docs=[...D.alat.map(a=>['alat',a.id,a]),...D.bulan.map(b=>['alat_bulan',b.id,b])];
+  $('#pj').innerHTML='<p class="sub">'+D.alat.length+' mesin dan '+D.bulan.length+' dokumen bulanan siap diimpor.</p><button class="btn" id="gj">Impor HM alat</button><div id="lj" class="sub"></div>';
+  $('#gj').onclick=async()=>{if(!confirm('Impor '+docs.length+' dokumen? Dokumen alat yang sudah ada akan ditimpa.'))return;$('#gj').disabled=true;try{for(let k=0;k<docs.length;k+=400){const b=F.writeBatch(db);docs.slice(k,k+400).forEach(([c,id,d])=>b.set(F.doc(db,c,id),d));await b.commit()}$('#lj').textContent='Selesai.'}catch(er){$('#lj').innerHTML='<span class="er">'+E(er.message||er)+'</span>';$('#gj').disabled=false}}};
  $('#fl').onchange=async e=>{const f=e.target.files[0];if(!f)return;
   const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),W={};PLAN.forEach(p=>W[p.s]=rows(wb,p.s));
   const x={hm:hmSementara(W)},docs=PLAN.map(p=>W[p.s].flatMap((r,i)=>p.t(r,x,i)));
