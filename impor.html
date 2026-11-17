@@ -42,11 +42,25 @@ async function main(){
  const ap=A.initializeApp(C.firebase),db=F.getFirestore(ap),au=U.getAuth(ap);
  await new Promise(res=>U.onAuthStateChanged(au,u=>{if(u)res();else login(U,au)}));
  await new Promise((res,rej)=>{const s=document.createElement('script');s.src=XL;s.onload=res;s.onerror=()=>rej(new Error('Gagal memuat pembaca Excel (SheetJS)'));document.head.appendChild(s)});
- $('#st').innerHTML='<div class="card"><label>Pilih file Data_Impor_Sistem_Baru.xlsx<input id="fl" type="file" accept=".xlsx"></label></div><div id="pv"></div><div class="card"><label>HM alat berat dan kendaraan: pilih file Impor_HM_Alat.json<input id="fj" type="file" accept=".json"></label><div id="pj"></div></div>';
+ $('#st').innerHTML='<div class="card"><label>Pilih file Data_Impor_Sistem_Baru.xlsx<input id="fl" type="file" accept=".xlsx"></label></div><div id="pv"></div><div class="card"><label>HM alat berat dan kendaraan: pilih file Impor_HM_Alat.json<input id="fj" type="file" accept=".json"></label><div id="pj"></div></div><div class="card"><label>Work order maintenance: pilih file Impor_WorkOrder.json<input id="fw" type="file" accept=".json"></label><div id="pw"></div></div>';
  $('#fj').onchange=async e=>{const f=e.target.files[0];if(!f)return;let D;try{D=JSON.parse(await f.text())}catch(x){$('#pj').innerHTML='<div class="note">File JSON tidak terbaca.</div>';return}
   const docs=[...D.alat.map(a=>['alat',a.id,a]),...D.bulan.map(b=>['alat_bulan',b.id,b])];
   $('#pj').innerHTML='<p class="sub">'+D.alat.length+' mesin dan '+D.bulan.length+' dokumen bulanan siap diimpor.</p><button class="btn" id="gj">Impor HM alat</button><div id="lj" class="sub"></div>';
   $('#gj').onclick=async()=>{if(!confirm('Impor '+docs.length+' dokumen? Dokumen alat yang sudah ada akan ditimpa.'))return;$('#gj').disabled=true;try{for(let k=0;k<docs.length;k+=400){const b=F.writeBatch(db);docs.slice(k,k+400).forEach(([c,id,d])=>b.set(F.doc(db,c,id),d));await b.commit()}$('#lj').textContent='Selesai.'}catch(er){$('#lj').innerHTML='<span class="er">'+E(er.message||er)+'</span>';$('#gj').disabled=false}}};
+ /*W1*/$('#fw').onchange=async e=>{const f=e.target.files[0];if(!f)return;let D;try{D=JSON.parse(await f.text())}catch(x){$('#pw').innerHTML='<div class="note">File JSON tidak terbaca.</div>';return}
+  $('#pw').innerHTML='<p class="sub">Memeriksa data yang sudah ada di web...</p>';
+  try{const plan=[];let nNew=0,nOld=0;
+   for(const d of D.days){const s=await F.getDoc(F.doc(db,'days',d.id)),ex=s.exists()?((s.data()||{}).jobs||{}):{},add={};
+    for(const[k,j]of Object.entries(d.jobs)){if(ex[k])nOld++;else{add[k]=j;nNew++}}
+    if(Object.keys(add).length)plan.push(['days',d.id,'jobs',add])}
+   for(const l of D.learn||[]){const s=await F.getDoc(F.doc(db,'learn',l.id)),ex=s.exists()?((s.data()||{}).jm||{}):{},add={};
+    for(const[k,v]of Object.entries(l.jm||{}))if(!(k in ex))add[k]=v;
+    if(Object.keys(add).length)plan.push(['learn',l.id,'jm',add])}
+   $('#pw').innerHTML='<p class="sub">'+nNew+' pekerjaan baru akan ditambahkan, '+nOld+' sudah ada di web dan dilewati. Kamus belajar: '+plan.filter(p=>p[0]==='learn').length+' dokumen.</p><button class="btn" id="gw">Tambahkan yang baru</button><div id="lw" class="sub"></div>';
+   $('#gw').onclick=async()=>{if(!plan.length){$('#lw').textContent='Tidak ada yang perlu ditambahkan.';return}
+    if(!confirm('Tambahkan '+nNew+' pekerjaan baru ke web? Pekerjaan yang sudah ada tidak diubah.'))return;$('#gw').disabled=true;
+    try{for(const[c,id,field,add]of plan)await F.setDoc(F.doc(db,c,id),{[field]:add},{merge:true});$('#lw').textContent='Selesai. '+plan.length+' dokumen diperbarui.'}catch(er){$('#lw').innerHTML='<span class="er">'+E(er.message||er)+'</span>';$('#gw').disabled=false}}}
+  catch(er){$('#pw').innerHTML='<div class="note">Gagal memeriksa: '+E(er.message||er)+'</div>'}};/*W2*/
  $('#fl').onchange=async e=>{const f=e.target.files[0];if(!f)return;
   const wb=XLSX.read(await f.arrayBuffer(),{type:'array'}),W={};PLAN.forEach(p=>W[p.s]=rows(wb,p.s));
   const x={hm:hmSementara(W)},docs=PLAN.map(p=>W[p.s].flatMap((r,i)=>p.t(r,x,i)));
