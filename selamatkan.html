@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Selamatkan data lokal</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#eef1f4;--ink:#14202b;--mut:#51606d;--line:#c9d2da;--ac:#2f5d8a;--r:#b3261e;--g:#2a7048}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.45 Barlow,system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:18px 14px 44px}h1{font-size:28px;margin:4px 0 4px}h2{font-size:19px;margin:22px 0 6px}
+.sub{color:var(--mut);font-size:15px}.card{background:#fff;border:1px solid var(--line);border-radius:4px;padding:12px 13px;margin-top:10px}
+.btn{display:block;width:100%;border:0;cursor:pointer;background:var(--ac);color:#fff;font-weight:700;font-size:18px;font-family:inherit;padding:13px;border-radius:4px;margin-top:10px}.btn[disabled]{opacity:.5}.btn.s{background:#fff;color:var(--ac);border:1.5px solid var(--ac)}
+:focus-visible{outline:3px solid #f0a500;outline-offset:2px}
+label{display:block;margin-top:10px;font-weight:500}input,textarea{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:4px;margin-top:4px;background:#fff}
+.note{background:#fff4d6;border:1px solid #e3c56a;border-radius:4px;padding:8px 10px;font-size:15px;margin-top:10px}.ok{background:#e3f1e8;border-color:#8fc3a2}.er{background:#fbe4e1;border-color:#e0958e}
+</style></head><body><main>
+<h1>Selamatkan data lokal</h1>
+<p class="sub">Untuk data work order yang tersimpan di perangkat ini saja dan belum masuk rekap online. Buka halaman ini di browser dan alamat situs yang sama dengan yang dipakai menginput.</p>
+<h2>1. Data di perangkat ini</h2><div class="card" id="s1"></div>
+<h2>2. Sambungan online</h2><div class="card" id="s2"></div>
+<h2>3. Kirim ke online</h2><div class="card" id="s3"><p class="sub">Selesaikan langkah 1 dan 2 dulu.</p></div>
+</main>
+<script type="module">
+const FBU='https://www.gstatic.com/firebasejs/10.14.1/',$=s=>document.querySelector(s),E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let C={};try{C=JSON.parse(localStorage.getItem('jmcfg')||'{}')}catch(e){}
+let LS={jobs:{},learn:{jm:{},pm:{}}};try{LS=JSON.parse(localStorage.getItem('jmlocal'))||LS}catch(e){}
+const jobs=Object.values(LS.jobs||{}).filter(j=>j&&j.id&&j.t&&!j.del),days=[...new Set(jobs.map(j=>j.t))].sort();
+const nL=Object.keys((LS.learn||{}).jm||{}).length+Object.keys((LS.learn||{}).pm||{}).length;
+// 1. data lokal
+$('#s1').innerHTML=jobs.length?`<b>${jobs.length} pekerjaan</b> dari ${days.length} hari (${E(days[0])} sampai ${E(days[days.length-1])}), ditambah ${nL} entri kamus belajar.<button class="btn s" id="bk">Unduh cadangan dulu (JSON)</button>`:'<div class="note">Tidak ada data lokal di perangkat ini. Pastikan alamat situs dan browsernya sama dengan yang dipakai menginput.</div>';
+if(jobs.length)$('#bk').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([localStorage.getItem('jmlocal')||'{}'],{type:'application/json'}));a.download='cadangan_work_order_lokal.json';document.body.appendChild(a);a.click();a.remove()};
+// 2. sambungan
+const ok=C.firebase&&C.firebase.apiKey;
+$('#s2').innerHTML=ok?'Perangkat ini sudah tersambung ke proyek <b>'+E(C.firebase.projectId)+'</b>.':'<div class="note">Perangkat ini belum tersambung ke Firebase. Itu sebabnya input tidak masuk rekap online.</div><label>Tempel konfigurasi Firebase (dari admin)<textarea id="cf" rows="4" placeholder="const firebaseConfig = { apiKey: &quot;...&quot;, authDomain: &quot;...&quot;, projectId: &quot;...&quot;, ... };"></textarea></label><button class="btn" id="cs">Simpan sambungan</button><p class="sub" id="cm"></p>';
+if(!ok)$('#cs').onclick=()=>{const f={};(($('#cf').value||'').match(/([A-Za-z]+)\s*["']?\s*:\s*["']([^"']+)["']/g)||[]).forEach(x=>{const m=x.match(/([A-Za-z]+)\s*["']?\s*:\s*["']([^"']+)["']/);f[m[1]]=m[2]});
+ if(!(f.apiKey&&f.projectId)){$('#cm').textContent='Konfigurasi tidak terbaca. Salin seluruh teks firebaseConfig.';return}
+ localStorage.setItem('jmcfg',JSON.stringify({...C,url:C.url||'',key:C.key||'',firebase:f}));location.reload()};
+// 3. kirim
+async function db(){
+ if(window.__FBMOCK)return window.__FBMOCK;
+ const[A,F,U]=await Promise.all([import(FBU+'firebase-app.js'),import(FBU+'firebase-firestore.js'),import(FBU+'firebase-auth.js')]),ap=A.initializeApp(C.firebase),d=F.getFirestore(ap),au=U.getAuth(ap);
+ await new Promise(res=>U.onAuthStateChanged(au,u=>{if(u)res();else{$('#s3').innerHTML='<b>Masuk dengan akunmu</b><label>Email<input id="e" type="email" autocomplete="username"></label><label>Password<input id="p" type="password" autocomplete="current-password"></label><button class="btn" id="lg">Masuk</button><p class="sub" id="lm"></p>';
+  $('#lg').onclick=async()=>{try{await U.signInWithEmailAndPassword(au,$('#e').value.trim(),$('#p').value)}catch(x){$('#lm').textContent='Email atau password salah.'}}}}));
+ return{ex:async t=>{const s=await F.getDoc(F.doc(d,'days',t));return s.exists()?Object.keys((s.data()||{}).jobs||{}):[]},put:async(t,o)=>F.setDoc(F.doc(d,'days',t),{jobs:o},{merge:true}),
+  lex:async id=>{const s=await F.getDoc(F.doc(d,'learn',id));return s.exists()?s.data():{}},lput:async(id,f,o)=>F.setDoc(F.doc(d,'learn',id),{[f]:o},{merge:true})}}
+if(jobs.length&&(ok||window.__FBMOCK)){$('#s3').innerHTML='<button class="btn" id="go">Periksa yang belum online</button>';
+ $('#go').onclick=async()=>{$('#go').disabled=true;try{const D=await db();$('#s3').innerHTML='<p class="sub">Memeriksa...</p>';
+  const by={};jobs.forEach(j=>(by[j.t]=by[j.t]||{})[j.id]=j);const plan=[];let nNew=0,nOld=0;
+  for(const t of Object.keys(by).sort()){const ex=new Set(await D.ex(t)),add={};for(const[id,j]of Object.entries(by[t])){if(ex.has(id))nOld++;else{add[id]=j;nNew++}}if(Object.keys(add).length)plan.push([t,add])}
+  const lm=days[days.length-1].slice(0,7),L=LS.learn||{},lplan=[];
+  if(nL){const ex=await D.lex(lm);for(const f of['jm','pm']){const add={};for(const[k,v]of Object.entries(L[f]||{}))if(!(ex[f]||{})[k])add[k]=v;if(Object.keys(add).length)lplan.push([f,add])}}
+  $('#s3').innerHTML=`<p><b>${nNew}</b> pekerjaan belum ada di online dan akan dikirim. ${nOld} sudah ada dan dilewati.</p><button class="btn" id="send">Kirim ke online</button><div id="sm"></div>`;
+  $('#send').onclick=async()=>{if(!plan.length&&!lplan.length){$('#sm').innerHTML='<div class="note ok">Semua sudah ada di online.</div>';return}
+   $('#send').disabled=true;try{for(const[t,a]of plan)await D.put(t,a);for(const[f,a]of lplan)await D.lput(lm,f,a);
+    $('#sm').innerHTML='<div class="note ok"><b>Selesai.</b> '+nNew+' pekerjaan sudah masuk rekap online. Buka situs work order, tab Data atau Rekap, lalu muat ulang. Mulai sekarang input akan tersimpan online di perangkat ini.</div>'}catch(er){$('#sm').innerHTML='<div class="note er">Gagal: '+E(er.message||er)+'</div>';$('#send').disabled=false}}}
+  catch(er){$('#s3').innerHTML='<div class="note er">Gagal: '+E(er.message||er)+'</div>'}}}
+</script></body></html>
