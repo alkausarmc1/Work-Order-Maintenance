@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Input HM Mesin</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#eef1f4;--ink:#14202b;--mut:#51606d;--line:#c9d2da;--card:#fff;--ac:#2f5d8a;--r:#b3261e;--y:#a86400;--g:#2a7048}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.4 'Barlow Semi Condensed',system-ui,sans-serif;padding-bottom:84px}
+main{max-width:720px;margin:0 auto;padding:14px 12px}h1{font-size:28px;line-height:1.1;margin:2px 0 8px;font-weight:700}
+h2{font-size:18px;margin:20px 0 6px;font-weight:700;padding-bottom:4px;border-bottom:2px solid var(--ink)}
+.sub{color:var(--mut);font-size:15px}.top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}a{color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:11px 12px}
+label{display:block;font-weight:500;font-size:15px;color:var(--mut)}
+input{font:inherit;color:var(--ink);padding:10px;border:1px solid var(--line);border-radius:4px;background:#fff;width:100%}
+.hd{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.r{display:grid;grid-template-columns:1fr 128px;gap:4px 10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.r b{font-size:18px}.r .id{color:var(--mut);font-size:13px;margin-left:6px;font-weight:400}.l{grid-column:1;color:var(--mut);font-size:14px}
+.r input{grid-column:2;grid-row:1/3;text-align:right;font-size:20px;font-variant-numeric:tabular-nums}
+.d{grid-column:1/-1;font-size:14px;min-height:0}.d.up{color:var(--g)}.d.wr{color:var(--y)}.d.er{color:var(--r)}
+.d label{display:flex;gap:8px;align-items:center;color:var(--ink);font-size:15px;margin-top:3px}.d input{width:22px;height:22px;padding:0}
+.pill{font-size:12px;border:1px solid var(--y);color:var(--y);border-radius:3px;padding:0 5px;margin-left:6px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 12px}
+.bar div{max-width:720px;margin:0 auto;display:flex;gap:10px;align-items:center}.bar span{flex:1;font-size:15px;color:var(--mut)}
+.btn{border:0;cursor:pointer;background:var(--ac);color:#fff;font-weight:700;font-size:18px;font-family:inherit;padding:13px 20px;border-radius:4px}.btn[disabled]{opacity:.5}
+:focus-visible{outline:3px solid #f0a500;outline-offset:2px}
+.note{background:#fff4d6;border:1px solid #e3c56a;border-radius:4px;padding:8px 10px;font-size:15px;margin:10px 0}.ok{background:#e3f1e8;border-color:#8fc3a2}.bad{background:#fbe4e1;border-color:#e0958e}
+</style></head><body><main id="app"><p class="sub">Memuat...</p></main>
+<div class="bar" id="bar" hidden><div><span id="cnt"></span><button class="btn" id="sv">Simpan</button></div></div>
+<script type="module">
+const FBU='https://www.gstatic.com/firebasejs/10.14.1/',$=s=>document.querySelector(s),app=$('#app');
+const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const N=x=>x==null||x===''||isNaN(x)?'-':(Math.round(+x*10)/10).toFixed(1).replace(/\.0$/,'');
+const D=s=>{if(!s)return'-';const d=new Date(s);return isNaN(d)?E(s):d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})};
+const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+const d1=v=>{v=String(v).replace(',','.').replace(/[^0-9.]/g,'');const p=v.split('.');return p[0]+(p.length>1?'.'+p.slice(1).join('').slice(0,1):'')};
+const ORDER=['LOADING RAMP','STERILIZER','THRESHER','EB PRESS','PRESS','KLARIFIKASI','KERNEL','BOILER','WATER TREATMENT','POWER HOUSE','EFFLUENT TREATMENT','OIL DESPATCH'];
+let C={};try{C=JSON.parse(localStorage.getItem('jmcfg')||'{}')}catch(e){}
+function login(U,au){return new Promise(res=>{app.innerHTML='<form class="card" id="lg"><b>Masuk sebagai admin</b><label>Email<input id="e" type="email" autocomplete="username"></label><label>Password<input id="p" type="password" autocomplete="current-password"></label><button class="btn" style="margin-top:10px;width:100%">Masuk</button><p id="m" class="sub"></p></form>';
+ $('#lg').onsubmit=async ev=>{ev.preventDefault();try{await U.signInWithEmailAndPassword(au,$('#e').value.trim(),$('#p').value)}catch(x){$('#m').textContent='Email atau password salah.'}}})}
+async function connect(){
+ if(window.__DBMOCK)return window.__DBMOCK;
+ if(!C.firebase||!C.firebase.apiKey)throw new Error('Firebase belum tersambung. Buka halaman rekap, isi Sambungan, lalu buka halaman ini lagi.');
+ const[A,F,U]=await Promise.all([import(FBU+'firebase-app.js'),import(FBU+'firebase-firestore.js'),import(FBU+'firebase-auth.js')]);
+ const ap=A.initializeApp(C.firebase),db=F.getFirestore(ap),au=U.getAuth(ap);
+ await new Promise(res=>U.onAuthStateChanged(au,u=>u?res():login(U,au)));
+ const rs=await F.getDoc(F.doc(db,'users',au.currentUser.uid));
+ return{role:rs.exists()?rs.data().role:null,email:au.currentUser.email,
+  load:async()=>(await F.getDocs(F.query(F.collection(db,'mesin'),F.where('vital','==',true)))).docs.map(d=>({id:d.id,...d.data()})),
+  save:async(rows,tgl,oleh,jam)=>{const ops=[];rows.forEach(r=>{ops.push(b=>b.set(F.doc(db,'hm_log',r.id+'_'+tgl),{mesin_id:r.id,tanggal:tgl,hm:r.hm,dicatat_oleh:oleh,catatan:r.reset?'Reset meter':'',...(r.reset?{reset_meter:true}:{}),dibuat:F.serverTimestamp()}));
+   ops.push(b=>b.update(F.doc(db,'mesin',r.id),{hm:r.hm,hm_tgl:tgl,hm_sementara:F.deleteField()}))});
+   if(jam!=null)ops.push(b=>b.set(F.doc(db,'jam_olah',tgl),{tanggal:tgl,jam:jam}));
+   for(let k=0;k<ops.length;k+=400){const b=F.writeBatch(db);ops.slice(k,k+400).forEach(o=>o(b));await b.commit()}}}}
+let API,M=[],V={},msg='';
+const val=(m,v,tgl)=>{ // hasil pengecekan satu baris
+ if(v===''||v==null)return null;const x=parseFloat(v);if(isNaN(x))return{k:'er',t:'Isi dengan angka.',block:true};
+ if(m.hm==null)return{k:'wr',t:'Belum ada HM sebelumnya. Angka ini menjadi HM awal.'};
+ if(m.hm_sementara)return{k:'wr',t:'HM sebelumnya hanya sementara. Angka ini menjadi HM awal.'};
+ if(m.hm_tgl&&tgl<m.hm_tgl)return{k:'er',t:'Tanggal lebih lama dari catatan terakhir ('+D(m.hm_tgl)+').',block:true};
+ const gap=Math.max(1,Math.round((new Date(tgl)-new Date(m.hm_tgl))/864e5)),dl=x-m.hm;
+ if(dl<0)return{k:'er',t:'Lebih kecil dari HM terakhir.',reset:true};
+ if(dl>24*gap+8)return{k:'wr',t:'Naik '+N(dl)+' HM dalam '+gap+' hari, lebih dari 24 jam per hari.',confirm:true};
+ return{k:'up',t:'Naik '+N(dl)+' HM'}};
+function draw(){
+ const tgl=($('#tg')||{}).value||today(),who=($('#nm')||{}).value??localStorage.getItem('hmoleh')??'',jam=($('#jm')||{}).value??'';
+ const by={};M.forEach(m=>(by[m.area]=by[m.area]||[]).push(m));
+ const areas=Object.keys(by).sort((a,b)=>(ORDER.indexOf(a)<0?99:ORDER.indexOf(a))-(ORDER.indexOf(b)<0?99:ORDER.indexOf(b))||a.localeCompare(b));
+ app.innerHTML=`<div class="top"><a href="menu.html">Menu</a><span class="sub">${M.length} unit</span></div><h1>Input HM mesin</h1>${msg?'<div class="note ok">'+E(msg)+'</div>':''}
+ <div class="card"><div class="hd"><div><label for="tg">Tanggal</label><input id="tg" type="date" value="${tgl}" max="${today()}"></div><div><label for="nm">Nama pencatat</label><input id="nm" value="${E(who)}" autocomplete="name"></div></div>
+ <div style="margin-top:10px"><label for="jm">Jam olah hari ini (CBC), opsional</label><input id="jm" inputmode="decimal" autocomplete="off" placeholder="contoh 19.5" value="${E(jam)}"><div class="d er" id="jme"></div></div></div>`+
+ areas.map(a=>`<h2>${E(a)}</h2>`+by[a].sort((x,y)=>String(x.nama).localeCompare(String(y.nama),'id',{numeric:true})).map(m=>`<div class="r"><div><b>${E(m.nama)}</b><span class="id">${E(m.id)}</span>${m.hm_sementara?'<span class="pill">HM sementara</span>':''}</div><input data-id="${E(m.id)}" inputmode="decimal" autocomplete="off" aria-label="HM baru ${E(m.nama)}" value="${E(V[m.id]??'')}"><div class="l">Terakhir ${N(m.hm)}, ${D(m.hm_tgl)}</div><div class="d" id="d-${E(m.id)}"></div></div>`).join('')).join('');
+ document.querySelectorAll('.r input[data-id]').forEach(i=>i.oninput=()=>{i.value=d1(i.value);V[i.dataset.id]=i.value;chk()});
+ $('#tg').onchange=chk;$('#jm').oninput=e=>{e.target.value=d1(e.target.value);chk()};chk()}
+let FLAG={};
+function chk(){const tgl=$('#tg').value;let n=0,bad=0;
+ M.forEach(m=>{const el=document.getElementById('d-'+m.id);if(!el)return;const v=val(m,V[m.id],tgl);let h='';
+  if(v){n++;h=`<span class="${v.k}">${E(v.t)}</span>`;
+   if(v.reset)h+=`<label><input type="checkbox" data-f="reset" data-id="${m.id}" ${FLAG[m.id]==='reset'?'checked':''}>Meter diganti atau direset</label>`;
+   if(v.confirm)h+=`<label><input type="checkbox" data-f="ok" data-id="${m.id}" ${FLAG[m.id]==='ok'?'checked':''}>Angka sudah benar</label>`;
+   if(v.block||(v.reset&&FLAG[m.id]!=='reset')||(v.confirm&&FLAG[m.id]!=='ok'))bad++}
+  const nk=el.className.split(' ')[0]+' '+(v?v.k:'');el.className=nk;
+  if(el.dataset.h!==h){el.innerHTML=h;el.dataset.h=h;el.querySelectorAll('input[data-f]').forEach(c=>c.onchange=()=>{FLAG[c.dataset.id]=c.checked?c.dataset.f:'';chk()})}});
+ const jm=$('#jm').value,jbad=jm!==''&&(parseFloat(jm)>24||isNaN(parseFloat(jm)));if(jbad)bad++;$('#jme').textContent=jbad?'Jam olah harus antara 0 dan 24.':'';
+ $('#bar').hidden=false;$('#cnt').textContent=n?n+' unit terisi'+(bad?', '+bad+' perlu dicek':''):'Belum ada yang diisi';$('#sv').disabled=!n&&jm===''||bad>0}
+async function simpan(){const tgl=$('#tg').value,oleh=$('#nm').value.trim(),jmv=$('#jm').value;
+ const rows=M.filter(m=>V[m.id]!==''&&V[m.id]!=null).map(m=>({id:m.id,hm:Math.round(parseFloat(V[m.id])*10)/10,reset:FLAG[m.id]==='reset'}));
+ if(!oleh){msg='';alert('Isi nama pencatat dulu.');$('#nm').focus();return}
+ if(!confirm('Simpan '+rows.length+' unit'+(jmv!==''?' dan jam olah':'')+' untuk tanggal '+D(tgl)+'?'))return;
+ localStorage.setItem('hmoleh',oleh);$('#sv').disabled=true;
+ try{await API.save(rows,tgl,oleh,jmv===''?null:Math.round(parseFloat(jmv)*10)/10);
+  rows.forEach(r=>{const m=M.find(x=>x.id===r.id);if(m&&(!m.hm_tgl||tgl>=m.hm_tgl)){m.hm=r.hm;m.hm_tgl=tgl;delete m.hm_sementara}});
+  msg=rows.length+' unit'+(jmv!==''?' dan jam olah':'')+' tersimpan untuk '+D(tgl)+'.';V={};FLAG={};const keep=tgl;draw();$('#tg').value=keep;$('#jm').value='';$('#nm').value=oleh;chk();scrollTo(0,0)}
+ catch(e){msg='';app.insertAdjacentHTML('afterbegin','<div class="note bad">Gagal menyimpan: '+E(e.message||e)+'</div>');$('#sv').disabled=false}}
+$('#sv').onclick=simpan;
+connect().then(async a=>{API=a;if(a.role!=='admin'){app.innerHTML='<h1>Input HM mesin</h1><div class="note bad">Halaman ini hanya untuk admin. Akun yang dipakai belum terdaftar sebagai admin.</div><a href="menu.html">Kembali ke menu</a>';return}
+ M=(await a.load()).filter(m=>m.area!=='KENDARAAN'&&!/^MS-KN-/.test(m.id));draw()}).catch(e=>{app.innerHTML='<h1>Input HM mesin</h1><div class="note bad">'+E(e.message||e)+'</div>'});
+</script></body></html>
