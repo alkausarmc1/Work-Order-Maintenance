@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bagikan sambungan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&display=swap">
+<style>
+:root{--bg:#eef1f4;--ink:#14202b;--mut:#51606d;--line:#c9d2da;--ac:#2f5d8a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.45 Barlow,system-ui,sans-serif}
+main{max-width:640px;margin:0 auto;padding:18px 14px 44px}h1{font-size:28px;margin:4px 0}
+.sub{color:var(--mut);font-size:15px}.card{background:#fff;border:1px solid var(--line);border-radius:4px;padding:12px 13px;margin-top:12px}
+.btn{display:block;width:100%;border:0;cursor:pointer;background:var(--ac);color:#fff;font-weight:700;font-size:18px;font-family:inherit;padding:13px;border-radius:4px;margin-top:10px}.btn.s{background:#fff;color:var(--ac);border:1.5px solid var(--ac)}
+:focus-visible{outline:3px solid #f0a500;outline-offset:2px}textarea{width:100%;font:14px/1.4 ui-monospace,Consolas,monospace;padding:10px;border:1px solid var(--line);border-radius:4px;background:#fff;margin-top:8px}
+.note{background:#fff4d6;border:1px solid #e3c56a;border-radius:4px;padding:8px 10px;font-size:15px;margin-top:12px}.ok{color:#2a7048;font-weight:500;margin-top:8px}
+</style></head><body><main>
+<h1>Bagikan sambungan</h1>
+<p class="sub">Untuk menyambungkan perangkat teman ke Firebase yang sama. Buka halaman ini di perangkat yang sudah tersambung online.</p>
+<div id="app"></div>
+</main>
+<script>
+const $=s=>document.querySelector(s);let C={};try{C=JSON.parse(localStorage.getItem('jmcfg')||'{}')}catch(e){}
+const f=C.firebase;
+if(!f||!f.apiKey){$('#app').innerHTML='<div class="note">Perangkat ini belum menyimpan konfigurasi Firebase. Ambil dari Firebase console: Project settings, Your apps, SDK setup and configuration, Config.</div>'}
+else{
+ const text='const firebaseConfig = '+JSON.stringify(f,null,2)+';';
+ const b64=btoa(unescape(encodeURIComponent(JSON.stringify(f)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+ const link=new URL('selamatkan.html',location.href).href.split('#')[0]+'#c='+b64;
+ $('#app').innerHTML='<div class="card"><b>Tautan untuk teman</b><p class="sub">Kirim tautan ini lewat WhatsApp. Temanmu membukanya di perangkatnya, lalu tinggal menekan Simpan sambungan.</p><button class="btn" id="cl">Salin tautan</button><div class="ok" id="m1"></div></div><div class="card"><b>Konfigurasi (teks)</b><textarea id="tx" rows="9" readonly></textarea><button class="btn s" id="ct">Salin konfigurasi</button><div class="ok" id="m2"></div></div><div class="note">Ini bukan kata sandi, tapi kirim hanya ke orang yang memang perlu. Temanmu tetap harus login dengan akunnya sendiri.</div>';
+ $('#tx').value=text;
+ const cp=async(t,el,msg)=>{try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}$(el).textContent=msg};
+ $('#cl').onclick=()=>cp(link,'#m1','Tautan tersalin. Tempel di WhatsApp.');$('#ct').onclick=()=>cp(text,'#m2','Teks tersalin.');
+ window.__LINK=link}
+</script></body></html>
