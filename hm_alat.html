@@ -110,28 +110,37 @@ function inputTab(){const C=chainMap();GC=groups().filter(g=>!hf||g.d.startsWith
  const sk=Object.keys(S.solar).map(k=>({k,m:k.split('|')[0],d:k.split('|')[1],v:S.solar[k]})).filter(x=>!hf||x.d.startsWith(hf)).sort((a,b)=>b.d.localeCompare(a.d)).slice(0,hf?400:60);
  const form=canEdit?`<div class="card">${ed>=0?'<p class="mu"><b>Mengedit shift ('+eg.length+' baris).</b> HM tiap job dipertahankan kalau job dan HM Akhir tidak diubah; kalau diubah, HM dibagi ulang sesuai porsi.</p>':''}<div class="row2"><div><label>Tanggal (boleh tanggal yang sudah lewat)</label><input type="date" id="fd" value="${new Date().toISOString().slice(0,10)}" onchange="jt();prev()"></div>
  <div><label>Mesin</label><select id="fm" onchange="dlist();jt();prev()">${S.machines.map(m=>`<option>${esc(m.n)}</option>`).join('')}</select></div></div>
- <label>Nama operator (jika diisi, HM Akhir ditandai akhir shift)</label><input id="fo" list="dop" autocomplete="off" placeholder="nama operator"><datalist id="dop">${[...new Set(S.logs.map(l=>l.op).filter(Boolean))].map(o=>`<option value="${esc(o)}">`).join('')}</datalist><label>HM Akhir</label><input type="number" step="0.1" inputmode="decimal" id="fh" oninput="onHM()"><p class="mu" id="pv"></p>
+ <label>Nama operator (jika diisi, HM Akhir ditandai akhir shift)</label><input id="fo" list="dop" autocomplete="off" placeholder="nama operator"><datalist id="dop">${[...new Set(S.logs.map(l=>l.op).filter(Boolean))].map(o=>`<option value="${esc(o)}">`).join('')}</datalist><label>HM Akhir</label><input type="text" inputmode="decimal" id="fh" autocomplete="off" placeholder="contoh 10637.6" oninput="d1(this);onHM()"><p class="mu" id="pv"></p>
  <label>Job yang dikerjakan</label><div class="jobs" id="jb"></div><label>Kegiatan lain (opsional, pisahkan dengan koma)</label><input id="fk" list="dj" autocomplete="off" oninput="jt();prev()" placeholder="ketik kegiatan"><datalist id="dj"></datalist><div id="jt"></div>
  <label>Isi Solar (L) – opsional, sekali per hari</label><input type="number" step="0.1" inputmode="decimal" id="fs">
- <button class="btn" onclick="add()">${ed>=0?'Simpan perubahan':'Simpan data'}</button>${ed>=0?'<button class="btn s" onclick="ed=-1;eg=null;HMJ={};JT={};HDIRTY=false;render()">Batal edit</button>':'<button class="btn s" onclick="off()">Hari libur (Off)</button>'}</div>`:`<p class="mu">Mode lihat saja: hanya pemilik/editor yang bisa menginput data.</p>`;
+ <button class="btn" onclick="add()">${ed>=0?'Simpan perubahan':'Simpan data'}</button>${ed>=0?'<button class="btn s" onclick="ed=-1;eg=null;HMJ={};JT={};ORD=[];HDIRTY=false;render()">Batal edit</button>':'<button class="btn s" onclick="off()">Hari libur (Off)</button>'}</div>`:`<p class="mu">Mode lihat saja: hanya pemilik/editor yang bisa menginput data.</p>`;
  const rows=GC.map((g,gi)=>{const rs=g.idx.map(i=>C[i]),f=rs[0],e=rs[rs.length-1],hmT=rs.reduce((a,r)=>a+r.h,0),jo=rs.reduce((a,r)=>a+(r.jo||0),0),ja=(rs.find(r=>r.ja)||{}).ja,jb=[...rs].reverse().map(r=>r.jb).find(Boolean),sf=rs.some(r=>r.sf);
   return `<tr><td>${g.d}</td><td class="l">${esc(g.m)}</td><td class="l">${esc(g.op)}</td><td>${n(f.s)} → ${n(e.hm)}${sf?' ⇄':''}</td><td>${n(hmT)}</td><td class="l">${esc(rs.map(r=>r.ket||'-').join(', '))}</td><td>${ja?ja+'–'+jb+' ('+n(jo)+')':(jo?n(jo):'')}</td>${canEdit?`<td><button class="x" onclick="editG(${gi})">✎</button><button class="x" onclick="delG(${gi})">✕</button></td>`:''}</tr>`}).join('')||'<tr><td colspan="8" class="l">Belum ada data.</td></tr>';
  return form+svcForm()+`<h2>Riwayat input per shift</h2><label>Bulan (kosongkan = 60 terbaru)</label><input type="month" value="${hf}" onchange="hf=this.value;render()"><div class="w"><table><tr><th>Tanggal</th><th class="l">Mesin</th><th class="l">Operator</th><th>HM Awal → Akhir</th><th>HM Pemakaian</th><th class="l">Kegiatan</th><th>Jam Operator</th>${canEdit?'<th></th>':''}</tr>${rows}</table></div><h2>Isi solar tercatat</h2><div class="w"><table><tr><th>Tanggal</th><th class="l">Mesin</th><th>Liter</th>${canEdit?'<th></th>':''}</tr>${sk.map(x=>`<tr><td>${x.d}</td><td class="l">${esc(x.m)}</td><td>${n(x.v)}</td>${canEdit?`<td><button class="x" data-k="${esc(x.k)}" onclick="delS(this.dataset.k)">✕</button></td>`:''}</tr>`).join('')||'<tr><td colspan="4" class="l">-</td></tr>'}</table></div>`}
-function dlist(){const js=mach($('#fm').value).jobs;$('#dj').innerHTML=js.map(j=>`<option value="${esc(j)}">`).join('');const b=$('#jb');if(b)b.innerHTML=js.map(j=>`<label><input type="checkbox" class="fj" value="${esc(j)}" onchange="jt();prev()">${esc(j)}</label>`).join('')}
-function jobsSel(){return[...document.querySelectorAll('.fj:checked')].map(x=>x.value).concat(($('#fk').value||'').split(/[,;]/).map(x=>x.trim()).filter(Boolean))}
-let JT={},HMJ={},HDIRTY=false;
+function dlist(){const js=mach($('#fm').value).jobs;$('#dj').innerHTML=js.map(j=>`<option value="${esc(j)}">`).join('');const b=$('#jb');if(b)b.innerHTML=js.map(j=>`<label><input type="checkbox" class="fj" value="${esc(j)}" onchange="tk(this)">${esc(j)}</label>`).join('')}
+function jobsSel(){const all=[...document.querySelectorAll('.fj:checked')].map(x=>x.value).concat(($('#fk').value||'').split(/[,;]/).map(x=>x.trim()).filter(Boolean)),set=new Set(all),o=ORD.filter(x=>set.has(x));ORD=[...new Set(o.concat(all))];return ORD.slice()}
+function tk(c){ORD=ORD.filter(x=>x!==c.value);if(c.checked)ORD.push(c.value);jt();prev()}
+function mv(i,d){const js=jobsSel(),j=i+d;if(j<0||j>=js.length)return;
+ const all=js.every(x=>(JT[x]||{}).a&&(JT[x]||{}).b),dm={};js.forEach(x=>dm[x]=dur((JT[x]||{}).a,(JT[x]||{}).b));const st=all?tmin(JT[js[0]].a):null;
+ [js[i],js[j]]=[js[j],js[i]];ORD=js;
+ if(all){let c=st;js.forEach(x=>{const e=c+Math.round(dm[x]*60);JT[x]={a:hhmm(c),b:hhmm(e)};c=e})}
+ jt();prev()}
+function d1(e){let v=e.value.replace(',','.').replace(/[^0-9.]/g,'');const p=v.split('.');v=p[0]+(p.length>1?'.'+p.slice(1).join('').slice(0,1):'');if(v!==e.value)e.value=v}
+function afterSave(){const d=$('#fd').value,m=$('#fm').value;HMJ={};JT={};SH={a:'',b:''};ORD=[];HDIRTY=false;ed=-1;eg=null;render();$('#fd').value=d;$('#fm').value=m;dlist();jt();prev()}
+let JT={},HMJ={},HDIRTY=false,ORD=[];
 const tmin=x=>{const p=(x||'').split(':');return p.length<2||!p[0]?null:+p[0]*60+ +p[1]};
 function dur(a,b){const x=tmin(a),y=tmin(b);return x===null||y===null?0:Math.round(((y-x+1440)%1440)/60*100)/100}
 let SH={a:'',b:''};
 const hhmm=m=>{m=((Math.round(m)%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0')};
 function plan(m,k,tot){const man=k.map(j=>HMJ[j]!==undefined&&HMJ[j]!==''&&!isNaN(HMJ[j])),ms=k.reduce((a,j,i)=>a+(man[i]?+HMJ[j]:0),0),rest=k.filter((j,i)=>!man[i]),rem=Math.max(tot-ms,0),sh=rest.length?shares(m,rest,rem):[];let r=0;
- return k.map((j,i)=>man[i]?+HMJ[j]:Math.round(sh[r++]*rem*100)/100)}
-function setHM(i,v){const j=jobsSel().filter(Boolean)[i];if(v==='')delete HMJ[j];else HMJ[j]=parseFloat(v);HDIRTY=true;jt();prev()}
+ const a=sh.map(x=>Math.round(x*rem*10)/10);if(a.length){const dl=Math.round((Math.round(rem*10)/10-a.reduce((p,x)=>p+x,0))*10)/10;a[a.length-1]=Math.round((a[a.length-1]+dl)*10)/10}
+ return k.map((j,i)=>man[i]?+HMJ[j]:a[r++])}
+function setHM(i,v){const j=jobsSel().filter(Boolean)[i];if(v==='')delete HMJ[j];else HMJ[j]=Math.round(parseFloat(v)*10)/10;HDIRTY=true;jt();prev()}
 function resetHM(){HMJ={};HDIRTY=false;jt();prev()}
 function onHM(){if(ed>=0&&!HDIRTY)HMJ={};jt();prev()}
 function jt(){const el=$('#jt');if(!el)return;const js=jobsSel().filter(Boolean);
  const m=$('#fm').value,hv=parseFloat($('#fh').value),tot=isNaN(hv)?0:hv-stAt(m,$('#fd').value,ed>=0?eg:null),pl=plan(m,js,tot);
- el.innerHTML=js.length?`<label>Jam shift operator (jam dunia, opsional)</label><div class="row2"><input type="time" value="${SH.a}" onchange="SH.a=this.value"><input type="time" value="${SH.b}" onchange="SH.b=this.value"></div><button class="btn s" onclick="autoJT()">Bagi otomatis jam ke job sesuai porsi</button><label>Per job: jam kerja operator dan HM mesin (HM terisi otomatis sesuai porsi, bisa diubah)</label>`+js.map((j,i)=>{const t=JT[j]||{};return `<div class="row3"><div><label>${esc(j)}: dari jam</label><input type="time" value="${t.a||''}" onchange="setJT(${i},'a',this.value)"></div><div><label>sampai jam</label><input type="time" value="${t.b||''}" onchange="setJT(${i},'b',this.value)"></div><div><label>HM</label><input type="number" step="0.01" inputmode="decimal" value="${pl[i]}" onchange="setHM(${i},this.value)"></div></div>`}).join('')+`<button class="btn s" onclick="resetHM()">Hitung ulang HM otomatis</button>`:''}
+ el.innerHTML=js.length?`<label>Jam shift operator (jam dunia, opsional)</label><div class="row2"><input type="time" value="${SH.a}" onchange="SH.a=this.value"><input type="time" value="${SH.b}" onchange="SH.b=this.value"></div><button class="btn s" onclick="autoJT()">Bagi otomatis jam ke job sesuai porsi</button><label>Per job: jam kerja operator dan HM mesin (HM terisi otomatis sesuai porsi, bisa diubah). Urutan job = urutan jam kerja, tukar dengan tombol ▲ ▼.</label>`+js.map((j,i)=>{const t=JT[j]||{};return `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><b>${i+1}. ${esc(j)}</b><span><button class="x" ${i?'':'disabled'} onclick="mv(${i},-1)" aria-label="Naikkan urutan">▲</button><button class="x" ${i<js.length-1?'':'disabled'} onclick="mv(${i},1)" aria-label="Turunkan urutan">▼</button></span></div><div class="row3"><div><label>dari jam</label><input type="time" value="${t.a||''}" onchange="setJT(${i},'a',this.value)"></div><div><label>sampai jam</label><input type="time" value="${t.b||''}" onchange="setJT(${i},'b',this.value)"></div><div><label>HM</label><input type="number" step="0.1" inputmode="decimal" value="${pl[i]}" onchange="setHM(${i},this.value)"></div></div>`}).join('')+`<button class="btn s" onclick="resetHM()">Hitung ulang HM otomatis</button>`:''}
 function autoJT(){const js=jobsSel().filter(Boolean),x=tmin(SH.a),y=tmin(SH.b);if(x===null||y===null||!js.length){alert('Isi jam shift dari dan sampai dulu.');return}
  const tot=(y-x+1440)%1440;if(!tot){alert('Jam dari dan sampai tidak boleh sama.');return}
  const sh=shares($('#fm').value,js,tot/60);let c=x,cum=0;
@@ -139,28 +148,29 @@ function autoJT(){const js=jobsSel().filter(Boolean),x=tmin(SH.a),y=tmin(SH.b);i
  if(tot>=30*k)b.forEach((v,i)=>{const lo=(i?b[i-1]:x)+30,hi=x+tot-30*(k-1-i);b[i]=Math.min(Math.max(v,lo),hi)});
  js.forEach((j,i)=>{const e=i===k-1?x+tot:b[i];JT[j]={a:hhmm(c),b:hhmm(e)};c=e});jt();prev()}
 function setJT(i,k,v){const j=jobsSel().filter(Boolean)[i];(JT[j]=JT[j]||{})[k]=v;prev()}
-function prev(){const m=$('#fm').value,s=stAt(m,$('#fd').value,ed>=0?eg:null),h=parseFloat($('#fh').value);$('#pv').textContent='HM Awal: '+n(s)+(isNaN(h)?'':'  •  HM pemakaian: '+n(h-s)+(jobsSel().length?'  •  '+(()=>{const k=jobsSel(),pl=plan(m,k,h-s),sm=pl.reduce((a,b)=>a+b,0);return k.map((j,i)=>{const t=JT[j]||{},d=dur(t.a,t.b);return j+' '+n(pl[i],2)+(d?' (op '+n(d)+' jam)':'')}).join(' • ')+(Math.abs(sm-(h-s))>0.05?'  ⚠ jumlah HM job '+n(sm,2)+' ≠ '+n(h-s,2):'')})():''))}
+function prev(){const m=$('#fm').value,s=stAt(m,$('#fd').value,ed>=0?eg:null),h=parseFloat($('#fh').value);$('#pv').textContent='HM Awal: '+n(s)+(isNaN(h)?'':'  •  HM pemakaian: '+n(h-s)+(jobsSel().length?'  •  '+(()=>{const k=jobsSel(),pl=plan(m,k,h-s),sm=pl.reduce((a,b)=>a+b,0);return k.map((j,i)=>{const t=JT[j]||{},d=dur(t.a,t.b);return j+' '+n(pl[i],1)+(d?' (op '+n(d)+' jam)':'')}).join(' • ')+(Math.abs(sm-(h-s))>0.06?'  ⚠ jumlah HM job '+n(sm,1)+' ≠ '+n(h-s,1):'')})():''))}
 function save(m,d,h,ks,sol){const op=($('#fo')?$('#fo').value:'').trim();if(!d||isNaN(h)){alert('Isi tanggal dan HM Akhir.');return}
+ if(!(ks.length===1&&ks[0]==='Off')&&Math.abs(h*10-Math.round(h*10))>1e-6){alert('HM Akhir hanya boleh 1 angka di belakang koma.');return}
  const ex=ed>=0?eg:null,st=stAt(m,d,ex),nx=nxHM(m,d,ex);
  if(h<st){alert('HM Akhir lebih kecil dari HM Awal ('+n(st)+') pada tanggal itu.');return}
  if(h>nx+1e-6){alert('HM Akhir lebih besar dari HM sesudahnya ('+n(nx)+'). Cek tanggal atau HM-nya.');return}
- const c=ks.length,tot=h-st,pl=plan(m,ks,tot),sid=(ex&&S.logs[eg[0]].sid)||'s'+Date.now(),sm=pl.reduce((a,b)=>a+b,0);if(Math.abs(sm-tot)>0.05){alert('Jumlah HM per job ('+n(sm,2)+') tidak sama dengan HM pemakaian ('+n(tot,2)+'). Cek isian HM tiap job.');return}let cum=0;
- const nr=ks.map((j,i)=>{cum+=pl[i];const t=JT[String(j).trim()]||{};return{d,m,hm:i===c-1?h:Math.round((st+cum)*100)/100,ket:String(j).trim(),op,sf:(i===c-1&&op)?1:0,jo:dur(t.a,t.b),ja:t.a||'',jb:t.b||'',sid}});
+ const c=ks.length,tot=h-st,pl=plan(m,ks,tot),sid=(ex&&S.logs[eg[0]].sid)||'s'+Date.now(),sm=pl.reduce((a,b)=>a+b,0);if(Math.abs(sm-tot)>0.06){alert('Jumlah HM per job ('+n(sm,1)+') tidak sama dengan HM pemakaian ('+n(tot,1)+'). Cek isian HM tiap job.');return}let cum=0;
+ const nr=ks.map((j,i)=>{cum+=pl[i];const t=JT[String(j).trim()]||{};return{d,m,hm:i===c-1?h:Math.round((st+cum)*10)/10,ket:String(j).trim(),op,sf:(i===c-1&&op)?1:0,jo:dur(t.a,t.b),ja:t.a||'',jb:t.b||'',sid}});
  if(ex){const old=ex.map(i=>S.logs[i]);
   const ou=new Set(old.map(o=>o.ket)),same=ou.size===c&&ks.every(k=>ou.has(String(k).trim()))&&old[0].d===d&&old[0].m===m&&Math.abs(old[old.length-1].hm-h)<1e-6&&!HDIRTY,seen=new Set();
   const rn=same?old.map((o,k)=>{const f=!seen.has(o.ket);seen.add(o.ket);const r=nr.find(r=>r.ket===o.ket);return{...r,hm:o.hm,sf:(k===old.length-1&&op)?1:0,jo:f?r.jo:0,ja:f?r.ja:'',jb:f?r.jb:''}}):nr,pos=Math.min(...ex),out=[];
   S.logs.forEach((l,i)=>{if(i===pos)rn.forEach(r=>out.push(r));if(!ex.includes(i))out.push(l)});S.logs=out;ed=-1;eg=null}
  else nr.forEach(r=>S.logs.push(r));
- if(!isNaN(sol))S.solar[m+'|'+d]=sol;commit()}
-function add(){const ks=jobsSel();if(!ks.length){alert('Pilih minimal satu job atau isi kegiatan.');return}save($('#fm').value,$('#fd').value,parseFloat($('#fh').value),ks,parseFloat($('#fs').value))}
-function off(){const m=$('#fm').value,d=$('#fd').value;save(m,d,stAt(m,d),['Off'],0)}
+ if(!isNaN(sol))S.solar[m+'|'+d]=sol;commit();return true}
+function add(){const ks=jobsSel();if(!ks.length){alert('Pilih minimal satu job atau isi kegiatan.');return}if(save($('#fm').value,$('#fd').value,parseFloat($('#fh').value),ks,parseFloat($('#fs').value)))afterSave()}
+function off(){const m=$('#fm').value,d=$('#fd').value;if(save(m,d,stAt(m,d),['Off'],0))afterSave()}
 function delG(gi){const g=GC[gi];ask('Hapus shift ini ('+g.idx.length+' baris)?',()=>{const s=new Set(g.idx);S.logs=S.logs.filter((l,i)=>!s.has(i));ed=-1;eg=null;commit()})}
 function editG(gi){const g=GC[gi],rows=g.idx.map(i=>S.logs[i]);ed=g.idx[0];eg=g.idx;tab='in';render();
  $('#fd').value=g.d;$('#fm').value=g.m;dlist();$('#fo').value=g.op;$('#fh').value=rows[rows.length-1].hm;
  const mj=mach(g.m).jobs,extra=[];JT={};HMJ={};HDIRTY=false;const C=chainMap();
  rows.forEach((r,ri)=>{const k=r.ket||'';if(k)HMJ[k]=Math.round(((HMJ[k]||0)+C[g.idx[ri]].h)*100)/100;if(mj.includes(k)){const cb=[...document.querySelectorAll('.fj')].find(x=>x.value===k);if(cb)cb.checked=true}else if(k&&!extra.includes(k))extra.push(k);if(k)JT[k]={a:r.ja||'',b:r.jb||''}});
  $('#fk').value=extra.join(', ');SH={a:(rows.find(r=>r.ja)||{}).ja||'',b:[...rows].reverse().map(r=>r.jb).find(Boolean)||''};
- const s=S.solar[g.m+'|'+g.d];$('#fs').value=s===undefined?'':s;jt();prev();window.scrollTo(0,0);
+ const s=S.solar[g.m+'|'+g.d];$('#fs').value=s===undefined?'':s;ORD=[...new Set(rows.map(r=>r.ket||'').filter(Boolean))];jt();prev();window.scrollTo(0,0);
  if(new Set(rows.map(r=>r.ket)).size<rows.length)alert('Shift ini punya job yang namanya sama di beberapa baris. HM tiap baris tetap dipertahankan; jam operator hanya dicatat di baris pertama job itu.')}
 function delS(k){ask('Hapus data solar ini?',()=>{delete S.solar[k];commit()})}
 function svcOf(m){return(S.service||[]).map((s,i)=>({...s,i})).filter(s=>s.m===m).sort((a,b)=>a.d.localeCompare(b.d)||a.i-b.i)}
@@ -175,7 +185,7 @@ function svcForm(){const L=(S.service||[]).map((s,i)=>({...s,i})).sort((a,b)=>b.
  <label>Keterangan (opsional)</label><input id="sk"><button class="btn" onclick="addSvc()">Simpan service</button></div>`:'';
  return `<h2>Input service</h2>${f}<div class="w" style="margin-top:10px"><table><tr><th>Tanggal</th><th class="l">Mesin</th><th>HM</th><th class="l">Jenis</th><th class="l">Keterangan</th>${canEdit?'<th></th>':''}</tr>${L.map(s=>`<tr><td>${s.d}</td><td class="l">${esc(s.m)}</td><td>${n(s.hm)}</td><td class="l">${esc(s.jenis)}</td><td class="l">${esc(s.ket||'')}</td>${canEdit?`<td><button class="x" onclick="delSvc(${s.i})">\u2715</button></td>`:''}</tr>`).join('')||'<tr><td colspan="6" class="l">Belum ada catatan service.</td></tr>'}</table></div>`}
 function svcFill(){const m=$('#sm'),h=$('#sh');if(m&&h&&!h.value)h.value=startHM(m.value)}
-function addSvc(){const m=$('#sm').value,hm=parseFloat($('#sh').value),d=$('#sd').value,j=($('#sj').value||'').trim();if(!d||isNaN(hm)||!j){alert('Isi tanggal, HM saat service, dan jenis service.');return}S.service=S.service||[];S.service.push({d,m,hm,jenis:j,ket:($('#sk').value||'').trim()});commit()}
+function addSvc(){const m=$('#sm').value,hm=Math.round(parseFloat($('#sh').value)*10)/10,d=$('#sd').value,j=($('#sj').value||'').trim();if(!d||isNaN(hm)||!j){alert('Isi tanggal, HM saat service, dan jenis service.');return}S.service=S.service||[];S.service.push({d,m,hm,jenis:j,ket:($('#sk').value||'').trim()});commit()}
 function delSvc(i){ask('Hapus catatan service ini?',()=>{S.service.splice(i,1);commit()})}
 function box(h){let b=$('#msg');if(!b){b=document.createElement('div');b.id='msg';b.style.cssText='position:fixed;left:0;right:0;bottom:0;z-index:9;padding:14px;background:var(--sf);border-top:2px solid var(--ac);color:var(--fg);box-shadow:0 -4px 16px rgba(0,0,0,.25);padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))';document.body.appendChild(b)}b.innerHTML=h;b.style.display='block'}
 function say(t){box('<div style="max-width:980px;margin:0 auto">'+esc(t)+'<button class="btn s" onclick="$(\'#msg\').style.display=\'none\'">OK</button></div>')}
@@ -207,7 +217,7 @@ async function exp(mi){if(!dl||typeof ExcelJS==='undefined'){alert('Unduh Excel 
   ws.getCell('H'+(f+5)).value='Sel HM AKHIR kuning = akhir shift';ws.getCell('H'+(f+3)).value='HM SERVICE';ws.getCell('I'+(f+3)).value={formula:`I${f+2}-I${f+1}`};
   [5,6,7,8,9,10,12].forEach((w,i)=>0);ws.columns=[{width:3},{width:6},{width:11},{width:13},{width:11},{width:11},{width:14},{width:11},{width:14},{width:11},{width:9},{width:48},{width:20},{width:14},{width:18}]});
  try{const bf=await wb.xlsx.writeBuffer(),u=URL.createObjectURL(new Blob([bf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})),a=document.createElement('a');a.href=u;a.download='Monitoring HM '+m.n+'.xlsx';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}catch(e){alert('Gagal unduh: '+(e.message||e))}}
-function render(){if(tab!=='in'){HMJ={};JT={};HDIRTY=false}try{sessionStorage.setItem('hm_ui',JSON.stringify({tab,mon,hf,rf,rt}))}catch(e){}const T=[['rk','Rekap'],['in','Input'],...S.machines.map((m,i)=>['m'+i,m.n]),['ms','Master']];
+function render(){if(tab!=='in'){HMJ={};JT={};ORD=[];HDIRTY=false}try{sessionStorage.setItem('hm_ui',JSON.stringify({tab,mon,hf,rf,rt}))}catch(e){}const T=[['rk','Rekap'],['in','Input'],...S.machines.map((m,i)=>['m'+i,m.n]),['ms','Master']];
  $('#app').innerHTML=`<h1>Monitoring Hour Meter</h1><div class="tabs">${T.map(t=>`<button class="${t[0]===tab?'on':''}" onclick="tab='${t[0]}';ed=-1;render()">${esc(t[1])}</button>`).join('')}</div>`+
  (tab==='rk'?rekap():tab==='in'?inputTab():tab==='ms'?masterTab():mesin(+tab.slice(1)));
  if(tab==='in'&&canEdit){dlist();jt();prev();svcFill()}}
