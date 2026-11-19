@@ -30,6 +30,7 @@ if(jobs.length)$('#bk').onclick=()=>{const a=document.createElement('a');a.href=
 // 2. sambungan
 const ok=C.firebase&&C.firebase.apiKey;
 $('#s2').innerHTML=ok?'Perangkat ini sudah tersambung ke proyek <b>'+E(C.firebase.projectId)+'</b>.':'<div class="note">Perangkat ini belum tersambung ke Firebase. Itu sebabnya input tidak masuk rekap online.</div><label>Tempel konfigurasi Firebase (dari admin)<textarea id="cf" rows="4" placeholder="const firebaseConfig = { apiKey: &quot;...&quot;, authDomain: &quot;...&quot;, projectId: &quot;...&quot;, ... };"></textarea></label><button class="btn" id="cs">Simpan sambungan</button><p class="sub" id="cm"></p>';
+if(!ok){try{const h=(location.hash.match(/[#&]c=([^&]+)/)||[])[1];if(h){const c=JSON.parse(decodeURIComponent(escape(atob(h.replace(/-/g,'+').replace(/_/g,'/')))));if(c.apiKey&&c.projectId){$('#cf').value='const firebaseConfig = '+JSON.stringify(c)+';';$('#cm').textContent='Konfigurasi terisi dari tautan. Tekan Simpan sambungan.'}}}catch(e){}}
 if(!ok)$('#cs').onclick=()=>{const f={};(($('#cf').value||'').match(/([A-Za-z]+)\s*["']?\s*:\s*["']([^"']+)["']/g)||[]).forEach(x=>{const m=x.match(/([A-Za-z]+)\s*["']?\s*:\s*["']([^"']+)["']/);f[m[1]]=m[2]});
  if(!(f.apiKey&&f.projectId)){$('#cm').textContent='Konfigurasi tidak terbaca. Salin seluruh teks firebaseConfig.';return}
  localStorage.setItem('jmcfg',JSON.stringify({...C,url:C.url||'',key:C.key||'',firebase:f}));location.reload()};
