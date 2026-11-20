@@ -28,7 +28,7 @@ nav{display:grid;gap:14px;margin-top:30px}
 .tx span{display:block;margin-top:4px;color:var(--mut);font-size:16px}
 .adm{margin-top:28px;text-align:center;color:var(--mut);font-size:15px}
 .adm a{display:inline-block;margin-top:4px;padding:8px 4px;color:var(--ink);font-size:17px;font-weight:500}
-@media(min-width:720px){nav{grid-template-columns:repeat(3,1fr)}.t{grid-template-columns:1fr;grid-template-rows:88px 1fr;min-height:0}.tx{align-self:start}.wrap{padding-top:52px}}
+@media(min-width:720px){nav{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}.t{grid-template-columns:1fr;grid-template-rows:88px 1fr;min-height:0}.tx{align-self:start}.wrap{padding-top:52px}}
 </style></head><body>
 <svg id="bg" aria-hidden="true"></svg>
 <div class="wrap">
@@ -36,6 +36,7 @@ nav{display:grid;gap:14px;margin-top:30px}
 <nav>
  <a class="t" href="index.html"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="1"/><path d="M9 4V2.5h6V4M8.5 10h7M8.5 14h7M8.5 18h4"/></svg></div><div class="tx"><b>Input work order maintenance</b><span>Catat job harian, lihat rekap dan lembur</span></div></a>
  <a class="t" href="hm_alat.html"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-5"/><circle cx="12" cy="17" r="1.2"/></svg></div><div class="tx"><b>Input monitoring HM alat</b><span>HM, job, solar, dan service loader, excavator, kendaraan</span></div></a>
+ <a class="t" href="hm_mesin.html"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M4 9h16M4 14h16M10 9v11"/></svg></div><div class="tx"><b>Input HM mesin</b><span>Semua unit mesin dalam satu tabel, khusus admin</span></div></a>
  <a class="t" href="mesin.html"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg></div><div class="tx"><b>Cek mesin</b><span>HM, spesifikasi, dan sisa umur sparepart</span></div></a>
 </nav>
 <div class="adm">Khusus admin<br><a href="impor.html">Impor data ke database</a></div>
