@@ -19,7 +19,8 @@ h2{font-size:15px;margin:16px 0 8px}
 .card{border:1px solid var(--bd);border-radius:10px;padding:12px;background:var(--sf)}
 label{display:block;font-size:12px;color:var(--mu);margin:8px 0 3px}
 input,select,textarea{width:100%;box-sizing:border-box;padding:9px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--fg);font:inherit}
-.btn{margin-top:12px;padding:10px 16px;border:0;border-radius:8px;background:var(--ac);color:var(--acf);font:inherit;font-weight:600;width:100%;cursor:pointer}
+.btn{display:block;box-sizing:border-box;text-align:center;text-decoration:none;margin-top:12px;padding:10px 16px;border:0;border-radius:8px;background:var(--ac);color:var(--acf);font:inherit;font-weight:600;width:100%;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.btn:disabled{opacity:.6;cursor:wait}
 .btn.s{background:var(--sf);color:var(--fg);border:1px solid var(--bd);margin-top:8px}
 .jobs{display:flex;flex-wrap:wrap;gap:8px}
 .jobs label{display:flex;align-items:center;gap:6px;margin:0;padding:7px 10px;border:1px solid var(--bd);border-radius:8px;color:var(--fg);font-size:14px;width:auto;cursor:pointer}
@@ -191,7 +192,7 @@ function mesin(mi){
   const by={},bj={};R.forEach(r=>{const k=(r.ket||'-').trim();by[k]=r1((by[k]||0)+r.g);bj[k]=(bj[k]||0)+r.jo});
   const bo={},boj={};R.forEach(r=>{const k=(r.op||'-').trim();bo[k]=r1((bo[k]||0)+r.g);boj[k]=(boj[k]||0)+r.jo});
   return `<h2>Monitoring HM ${esc(m.n)}</h2>
-  <div class="row2"><div><label>Bulan</label><input type="month" value="${esc(mon)}" onchange="if(this.value){mon=this.value;render()}"></div><div style="align-self:end"><button class="btn s" style="margin:0" onclick="exp(${mi})">Unduh Excel</button></div></div>
+  <div class="row2"><div><label>Bulan</label><input type="month" value="${esc(mon)}" onchange="if(this.value){mon=this.value;render()}"></div><div style="align-self:end"><button type="button" id="btnExp" class="btn s" style="margin:0" onclick="exp(${mi})">Unduh Excel</button></div></div>
   <div class="w" style="margin-top:10px"><table><tr><th>No</th><th>Hari</th><th>Tgl</th><th>HM Awal</th><th>HM Akhir</th><th>HM Pemakaian</th><th>HM SHI</th><th>Isi Solar (L)</th><th>SHI (L)</th><th>L/HM</th><th class="l">Keterangan</th><th class="l">Operator</th><th>Jam Operator</th></tr>
   ${R.map(r=>`<tr><td>${r.first?r.day:''}</td><td>${r.first?esc(r.hari):''}</td><td>${r.first?r.day+'/'+r.mm:''}</td><td>${n(r.s)}</td><td${r.sf?' style="background:#ffe699;color:#000;font-weight:700"':''}>${n(r.f)}${r.sf?' ⇄':''}</td><td>${n(r.g)}</td><td>${n(r.hs)}</td><td>${r.first?n(r.sol,0):''}</td><td>${r.first?n(r.J):''}</td><td>${r.first&&r.hs?n(r.J/r.hs,2):''}</td><td class="l">${esc(r.ket)}</td><td class="l">${esc(r.op)}</td><td>${r.ja?esc(r.ja)+'–'+esc(r.jb)+' ('+n(r.jo)+')':(r.jo?n(r.jo):'')}</td></tr>`).join('')||'<tr><td colspan="13" class="l">Belum ada data bulan ini.</td></tr>'}
   <tr class="t"><td colspan="5" class="l">TOTAL</td><td>${n(R.reduce((a,r)=>r1(a+r.g),0))}</td><td></td><td>${n(sol,0)}</td><td colspan="4"></td><td>${n(R.reduce((a,r)=>a+r.jo,0))}</td></tr></table></div>
@@ -248,13 +249,13 @@ function inputTab(){
     <div id="jt"></div>
     <label>Isi Solar (L) – opsional, sekali per hari</label>
     <input type="number" step="0.1" inputmode="decimal" id="fs">
-    <button class="btn" onclick="add()">${ed>=0?'Simpan perubahan':'Simpan data'}</button>
-    ${ed>=0?'<button class="btn s" onclick="ed=-1;eg=null;HMJ={};JT={};ORD=[];HDIRTY=false;render()">Batal edit</button>':'<button class="btn s" onclick="off()">Hari libur (Off)</button>'}
+    <button type="button" class="btn" onclick="add()">${ed>=0?'Simpan perubahan':'Simpan data'}</button>
+    ${ed>=0?'<button type="button" class="btn s" onclick="ed=-1;eg=null;HMJ={};JT={};ORD=[];HDIRTY=false;render()">Batal edit</button>':'<button type="button" class="btn s" onclick="off()">Hari libur (Off)</button>'}
   </div>`:`<p class="mu">Mode lihat saja: hanya pemilik/editor yang bisa menginput data.</p>`;
 
   const rows=GC.map((g,gi)=>{
     const rs=g.idx.map(i=>C[i]),f=rs[0],e=rs[rs.length-1],hmT=rs.reduce((a,r)=>r1(a+r.h),0),jo=rs.reduce((a,r)=>a+(r.jo||0),0),ja=(rs.find(r=>r.ja)||{}).ja,jb=[...rs].reverse().map(r=>r.jb).find(Boolean),sf=rs.some(r=>r.sf);
-    return `<tr><td>${esc(g.d)}</td><td class="l">${esc(g.m)}</td><td class="l">${esc(g.op)}</td><td>${n(f.s)} → ${n(e.hm)}${sf?' ⇄':''}</td><td>${n(hmT)}</td><td class="l">${esc(rs.map(r=>r.ket||'-').join(', '))}</td><td>${ja?esc(ja)+'–'+esc(jb)+' ('+n(jo)+')':(jo?n(jo):'')}</td>${canEdit?`<td><button class="x" onclick="editG(${gi})">✎</button><button class="x" onclick="delG(${gi})">✕</button></td>`:''}</tr>`;
+    return `<tr><td>${esc(g.d)}</td><td class="l">${esc(g.m)}</td><td class="l">${esc(g.op)}</td><td>${n(f.s)} → ${n(e.hm)}${sf?' ⇄':''}</td><td>${n(hmT)}</td><td class="l">${esc(rs.map(r=>r.ket||'-').join(', '))}</td><td>${ja?esc(ja)+'–'+esc(jb)+' ('+n(jo)+')':(jo?n(jo):'')}</td>${canEdit?`<td><button type="button" class="x" onclick="editG(${gi})">✎</button><button type="button" class="x" onclick="delG(${gi})">✕</button></td>`:''}</tr>`;
   }).join('')||'<tr><td colspan="8" class="l">Belum ada data.</td></tr>';
 
   return form+svcForm()+`<h2>Riwayat input per shift</h2>
@@ -262,7 +263,7 @@ function inputTab(){
   <input type="month" value="${esc(hf)}" onchange="hf=this.value;render()">
   <div class="w"><table><tr><th>Tanggal</th><th class="l">Mesin</th><th class="l">Operator</th><th>HM Awal → Akhir</th><th>HM Pemakaian</th><th class="l">Kegiatan</th><th>Jam Operator</th>${canEdit?'<th></th>':''}</tr>${rows}</table></div>
   <h2>Isi solar tercatat</h2>
-  <div class="w"><table><tr><th>Tanggal</th><th class="l">Mesin</th><th>Liter</th>${canEdit?'<th></th>':''}</tr>${sk.map(x=>`<tr><td>${esc(x.d)}</td><td class="l">${esc(x.m)}</td><td>${n(x.v)}</td>${canEdit?`<td><button class="x" data-k="${esc(x.k)}" onclick="delS(this.dataset.k)">✕</button></td>`:''}</tr>`).join('')||'<tr><td colspan="4" class="l">-</td></tr>'}</table></div>`;
+  <div class="w"><table><tr><th>Tanggal</th><th class="l">Mesin</th><th>Liter</th>${canEdit?'<th></th>':''}</tr>${sk.map(x=>`<tr><td>${esc(x.d)}</td><td class="l">${esc(x.m)}</td><td>${n(x.v)}</td>${canEdit?`<td><button type="button" class="x" data-k="${esc(x.k)}" onclick="delS(this.dataset.k)">✕</button></td>`:''}</tr>`).join('')||'<tr><td colspan="4" class="l">-</td></tr>'}</table></div>`;
 }
 
 function onMachChange(){
@@ -361,13 +362,13 @@ function jt(){
   const m=$('#fm').value,hv=parseFloat($('#fh').value),tot=isNaN(hv)?0:r1(hv-stAt(m,$('#fd').value,ed>=0?eg:null)),pl=plan(m,js,tot);
   el.innerHTML=js.length?`<label>Jam shift operator (jam dunia, opsional)</label>
   <div class="row2"><input type="time" value="${esc(SH.a)}" onchange="SH.a=this.value"><input type="time" value="${esc(SH.b)}" onchange="SH.b=this.value"></div>
-  <button class="btn s" onclick="autoJT()">Bagi otomatis jam ke job sesuai porsi</button>
+  <button type="button" class="btn s" onclick="autoJT()">Bagi otomatis jam ke job sesuai porsi</button>
   <label>Per job: jam kerja operator dan HM mesin (HM terisi otomatis sesuai porsi, bisa diubah). Urutan job = urutan jam kerja, tukar dengan tombol ▲ ▼.</label>`+
   js.map((j,i)=>{
     const t=JT[j]||{};
-    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><b>${i+1}. ${esc(j)}</b><span><button class="x" ${i?'':'disabled'} onclick="mv(${i},-1)" aria-label="Naikkan urutan">▲</button><button class="x" ${i<js.length-1?'':'disabled'} onclick="mv(${i},1)" aria-label="Turunkan urutan">▼</button></span></div>
+    return `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><b>${i+1}. ${esc(j)}</b><span><button type="button" class="x" ${i?'':'disabled'} onclick="mv(${i},-1)" aria-label="Naikkan urutan">▲</button><button type="button" class="x" ${i<js.length-1?'':'disabled'} onclick="mv(${i},1)" aria-label="Turunkan urutan">▼</button></span></div>
     <div class="row3"><div><label>dari jam</label><input type="time" value="${esc(t.a||'')}" onchange="setJT(${i},'a',this.value)"></div><div><label>sampai jam</label><input type="time" value="${esc(t.b||'')}" onchange="setJT(${i},'b',this.value)"></div><div><label>HM</label><input type="number" step="0.1" min="0" inputmode="decimal" value="${pl[i]}" oninput="setHM(${i},this.value,true)" onchange="setHM(${i},this.value,false)"></div></div>`;
-  }).join('')+`<button class="btn s" onclick="resetHM()">Hitung ulang HM otomatis</button>`:'';
+  }).join('')+`<button type="button" class="btn s" onclick="resetHM()">Hitung ulang HM otomatis</button>`:'';
 }
 
 function autoJT(){
@@ -487,8 +488,8 @@ function svcForm(){
   const L=(S.service||[]).map((s,i)=>({...s,i})).sort((a,b)=>b.d.localeCompare(a.d)||b.i-a.i).slice(0,30);
   const f=canEdit?`<div class="card"><div class="row2"><div><label>Tanggal service</label><input type="date" id="sd" value="${new Date().toISOString().slice(0,10)}"></div><div><label>Mesin</label><select id="sm" onchange="$('#sh').value=startHM(this.value)">${S.machines.map(m=>`<option>${esc(m.n)}</option>`).join('')}</select></div></div>
   <label>HM saat service</label><input type="number" step="0.1" inputmode="decimal" id="sh"><label>Jenis service</label><input id="sj" list="dsj" autocomplete="off" placeholder="mis. Ganti oli mesin"><datalist id="dsj"><option value="Ganti oli mesin"><option value="Ganti filter"><option value="Service 250 HM"><option value="Service 500 HM"><option value="Service 1000 HM"><option value="Grease"><option value="Perbaikan"></datalist>
-  <label>Keterangan (opsional)</label><input id="sk"><button class="btn" onclick="addSvc()">Simpan service</button></div>`:'';
-  return `<h2>Input service</h2>${f}<div class="w" style="margin-top:10px"><table><tr><th>Tanggal</th><th class="l">Mesin</th><th>HM</th><th class="l">Jenis</th><th class="l">Keterangan</th>${canEdit?'<th></th>':''}</tr>${L.map(s=>`<tr><td>${esc(s.d)}</td><td class="l">${esc(s.m)}</td><td>${n(s.hm)}</td><td class="l">${esc(s.jenis)}</td><td class="l">${esc(s.ket||'')}</td>${canEdit?`<td><button class="x" onclick="delSvc(${s.i})">\u2715</button></td>`:''}</tr>`).join('')||'<tr><td colspan="6" class="l">Belum ada catatan service.</td></tr>'}</table></div>`;
+  <label>Keterangan (opsional)</label><input id="sk"><button type="button" class="btn" onclick="addSvc()">Simpan service</button></div>`:'';
+  return `<h2>Input service</h2>${f}<div class="w" style="margin-top:10px"><table><tr><th>Tanggal</th><th class="l">Mesin</th><th>HM</th><th class="l">Jenis</th><th class="l">Keterangan</th>${canEdit?'<th></th>':''}</tr>${L.map(s=>`<tr><td>${esc(s.d)}</td><td class="l">${esc(s.m)}</td><td>${n(s.hm)}</td><td class="l">${esc(s.jenis)}</td><td class="l">${esc(s.ket||'')}</td>${canEdit?`<td><button type="button" class="x" onclick="delSvc(${s.i})">\u2715</button></td>`:''}</tr>`).join('')||'<tr><td colspan="6" class="l">Belum ada catatan service.</td></tr>'}</table></div>`;
 }
 
 function svcFill(){const m=$('#sm'),h=$('#sh');if(m&&h&&!h.value)h.value=startHM(m.value)}
@@ -514,14 +515,14 @@ function box(h){
   b.innerHTML=h;
   b.style.display='block';
 }
-function say(t){box('<div style="max-width:980px;margin:0 auto">'+esc(t)+'<button class="btn s" onclick="$(\'#msg\').style.display=\'none\'">OK</button></div>')}
+function say(t){box('<div style="max-width:980px;margin:0 auto">'+esc(t)+'<button type="button" class="btn s" onclick="$(\'#msg\').style.display=\'none\'">OK</button></div>')}
 let _f=null;
-function ask(t,f){_f=f;box('<div style="max-width:980px;margin:0 auto">'+esc(t)+'<div class="row2"><button class="btn" onclick="$(\'#msg\').style.display=\'none\';_f()">Ya</button><button class="btn s" onclick="$(\'#msg\').style.display=\'none\'">Batal</button></div></div>')}
+function ask(t,f){_f=f;box('<div style="max-width:980px;margin:0 auto">'+esc(t)+'<div class="row2"><button type="button" class="btn" onclick="$(\'#msg\').style.display=\'none\';_f()">Ya</button><button type="button" class="btn s" onclick="$(\'#msg\').style.display=\'none\'">Batal</button></div></div>')}
 window.alert=say;
 
 function masterTab(){
   return `<div class="card"><label>Satu mesin per baris: Nama | HM awal | Saldo SHI solar awal (L) | HM baru ganti | Job:persen; Job:persen; ... (persen = porsi jam; tulis 0.5j untuk jam tetap) | Interval service HM (opsional, mis. 250)</label><textarea id="tm" rows="12" ${canEdit?'':'readonly'}>${esc(S.machines.map(m=>[m.n,m.hm,m.solar0,m.ganti,m.jobs.map(j=>j+(m.fx&&m.fx[j]!==undefined?':'+m.fx[j]+'j':(m.w&&m.w[j]!==undefined?':'+m.w[j]:''))).join('; '),m.iv||''].join(' | ')).join('\n'))}</textarea>
-  ${canEdit?'<button class="btn" onclick="saveM()">Simpan master</button>':''}</div>
+  ${canEdit?'<button type="button" class="btn" onclick="saveM()">Simpan master</button>':''}</div>
   <p class="mu">HM awal = angka hour meter saat mulai dicatat. Saldo SHI solar awal = angka awal di kolom SHI (L), mis. 42294.8. Semua masih 0: isi sesuai datamu. Jangan ubah nama mesin yang sudah ada datanya.</p>`;
 }
 
@@ -548,74 +549,122 @@ function saveM(){
   render();
 }
 
-async function exp(mi){
-  if(typeof ExcelJS==='undefined'){alert('Library ExcelJS belum dimuat. Periksa koneksi internet lalu coba lagi.');return}
-  const m=S.machines[mi],
-        mSet=new Set([...sorted(m.n).map(l=>l.d.slice(0,7)),...Object.keys(S.solar).filter(k=>k.startsWith(m.n+'|')).map(k=>k.split('|')[1].slice(0,7))]),
-        months=[...mSet].sort();
-  if(!months.length){alert('Belum ada data.');return}
-  const multiYear=new Set(months.map(x=>x.slice(0,4))).size>1;
-  const wb=new ExcelJS.Workbook(),thin={style:'thin'},bd={top:thin,left:thin,bottom:thin,right:thin};
-  months.forEach(mo=>{
-    const R=build(m.n,mo);
-    if(!R.length)return;
-    const sheetName=BLN[+mo.slice(5)-1]+(multiYear?' '+mo.slice(2,4):'');
-    const ws=wb.addWorksheet(sheetName),
-          H=['NO','HARI','TGL/BLN/TH','HM AWAL','HM AKHIR','HM PEMAKAIAN','HM SHI','ISI SOLAR ( L )','SHI ( L )','L/HM','KETERANGAN','OPERATOR','JAM KERJA OPERATOR','JAM DARI-SAMPAI'];
-    ws.mergeCells('B1:O1');
-    const t=ws.getCell('B1');t.value='Monitoring HM '+m.n;t.font={bold:true,size:14};t.alignment={horizontal:'center'};
-    H.forEach((h,i)=>{const c=ws.getCell(2,i+2);c.value=h;c.font={bold:true,color:{argb:'FFFFFFFF'}};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1F3864'}};c.alignment={horizontal:'center',vertical:'middle',wrapText:true};c.border=bd});
-    const hs0=r1(R[0].hs-R[0].g),J0=R[0].J-R[0].sol;
-    let pf=0,fx=0;
-    R.forEach((r,i)=>{
-      const x=i+3,p=x-1,set=(c,v)=>{ws.getCell(c+x).value=v};
-      set('E',i?{formula:'F'+p,result:r.s}:r.s);
-      set('F',r.f);
-      if(r.sf){const q=ws.getCell('F'+x);q.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFE699'}};q.font={bold:true}}
-      set('G',{formula:`F${x}-E${x}`,result:r.g});
-      set('H',{formula:(i?`H${p}`:hs0)+`+G${x}`,result:r.hs});
-      set('L',r.ket);set('M',r.op||'');set('O',r.ja?r.ja+'-'+r.jb:'');set('N',r.jo||0);
-      if(r.first){
-        set('B',r.day);set('C',r.hari);set('D',new Date(Date.UTC(r.y,r.mm-1,r.day)));set('I',r.sol);
-        set('J',{formula:pf?`J${pf}+I${x}`:`I${x}+${J0}`,result:r.J});
-        set('K',{formula:`J${x}/H${x}`,result:r.hs?r.J/r.hs:0});
-        pf=x;
-        if(r.cnt>1)['B','C','D','I','J','K'].forEach(c=>ws.mergeCells(`${c}${x}:${c}${x+r.cnt-1}`));
-      }
-      fx=x;
-    });
-    for(let x=3;x<=fx;x++)for(let c=2;c<=15;c++){
-      const cl=ws.getCell(x,c);
-      cl.border=bd;
-      cl.alignment={vertical:'middle',horizontal:(c===12||c===13)?'left':'center',wrapText:(c===12||c===13)};
-      if([5,6,7,8,10,14].includes(c))cl.numFmt='0.0';
-      if(c===4)cl.numFmt='dd/mm/yyyy';
-      if(c===11)cl.numFmt='0.00';
-    }
-    const f=fx+2;
-    ws.getCell('H'+f).value='TOTAL SOLAR (L)';ws.getCell('I'+f).value={formula:`SUM(I3:I${fx})`};
-    ws.getCell('H'+(f+1)).value='HM BARU GANTI';ws.getCell('I'+(f+1)).value=svcBase(m.n);
-    ws.getCell('H'+(f+2)).value='HM SEKARANG';ws.getCell('I'+(f+2)).value={formula:'F'+fx,result:R[R.length-1].f};
-    ws.getCell('H'+(f+5)).value='Sel HM AKHIR kuning = akhir shift';
-    ws.getCell('H'+(f+3)).value='HM SERVICE';ws.getCell('I'+(f+3)).value={formula:`I${f+2}-I${f+1}`};
-    ws.columns=[{width:3},{width:6},{width:11},{width:13},{width:11},{width:11},{width:14},{width:11},{width:14},{width:11},{width:9},{width:48},{width:20},{width:14},{width:18}];
+function loadExcelJS(){
+  if(typeof ExcelJS!=='undefined')return Promise.resolve();
+  return new Promise((res,rej)=>{
+    const sc=document.createElement('script');
+    sc.src='https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js';
+    sc.onload=()=>typeof ExcelJS!=='undefined'?res():rej(new Error('ExcelJS gagal dimuat'));
+    sc.onerror=()=>rej(new Error('Gagal memuat library ExcelJS. Periksa koneksi internet.'));
+    document.head.appendChild(sc);
   });
+}
+
+let _lastXlsx=null;
+async function shareLastXlsx(){
+  if(!_lastXlsx||!navigator.share)return;
   try{
+    const file=new File([_lastXlsx.blob],_lastXlsx.name,{type:_lastXlsx.blob.type});
+    await navigator.share({files:[file],title:_lastXlsx.name});
+  }catch(e){
+    if(e&&e.name!=='AbortError')alert('Gagal membagikan: '+(e.message||e));
+  }
+}
+
+async function exp(mi){
+  const btn=$('#btnExp');
+  if(btn){btn.disabled=true;btn.textContent='Menyiapkan Excel...'}
+  try{
+    await loadExcelJS();
+    const m=S.machines[mi];
+    if(!m){alert('Data mesin tidak ditemukan.');return}
+    const mSet=new Set([
+      ...sorted(m.n).map(l=>String(l.d||'').slice(0,7)).filter(x=>/^\d{4}-\d{2}$/.test(x)),
+      ...Object.keys(S.solar).filter(k=>k.startsWith(m.n+'|')).map(k=>String(k.split('|')[1]||'').slice(0,7)).filter(x=>/^\d{4}-\d{2}$/.test(x))
+    ]);
+    const months=[...mSet].sort();
+    if(!months.length){alert('Belum ada data untuk diunduh.');return}
+    const multiYear=new Set(months.map(x=>x.slice(0,4))).size>1;
+    const wb=new ExcelJS.Workbook(),thin={style:'thin'},bd={top:thin,left:thin,bottom:thin,right:thin};
+    const usedSheets=new Set();
+    months.forEach((mo,idx)=>{
+      const R=build(m.n,mo);
+      if(!R.length)return;
+      const mIdx=+mo.slice(5)-1;
+      let baseName=(BLN[mIdx]||mo)+(multiYear?' '+mo.slice(2,4):'');
+      baseName=baseName.replace(/[\\/?*\[\]:]/g,'').slice(0,31)||('Sheet'+(idx+1));
+      let sheetName=baseName,cnt=2;
+      while(usedSheets.has(sheetName)){sheetName=(baseName.slice(0,28)+' '+cnt++).slice(0,31)}
+      usedSheets.add(sheetName);
+      const ws=wb.addWorksheet(sheetName),
+            H=['NO','HARI','TGL/BLN/TH','HM AWAL','HM AKHIR','HM PEMAKAIAN','HM SHI','ISI SOLAR ( L )','SHI ( L )','L/HM','KETERANGAN','OPERATOR','JAM KERJA OPERATOR','JAM DARI-SAMPAI'];
+      ws.mergeCells('B1:O1');
+      const t=ws.getCell('B1');t.value='Monitoring HM '+m.n;t.font={bold:true,size:14};t.alignment={horizontal:'center'};
+      H.forEach((h,i)=>{const c=ws.getCell(2,i+2);c.value=h;c.font={bold:true,color:{argb:'FFFFFFFF'}};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF1F3864'}};c.alignment={horizontal:'center',vertical:'middle',wrapText:true};c.border=bd});
+      const hs0=r1((+R[0].hs||0)-(+R[0].g||0)),J0=(+R[0].J||0)-(+R[0].sol||0);
+      let pf=0,fx=0;
+      R.forEach((r,i)=>{
+        const x=i+3,p=x-1,set=(c,v)=>{ws.getCell(c+x).value=v};
+        const rs=+r.s||0,rfv=+r.f||0,rg=+r.g||0,rhs=+r.hs||0,rsol=+r.sol||0,rJ=+r.J||0,rjo=+r.jo||0;
+        set('E',i?{formula:'F'+p,result:rs}:rs);
+        set('F',rfv);
+        if(r.sf){const q=ws.getCell('F'+x);q.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFE699'}};q.font={bold:true}}
+        set('G',{formula:`F${x}-E${x}`,result:rg});
+        set('H',{formula:(i?`H${p}`:`(${hs0})`)+`+G${x}`,result:rhs});
+        set('L',r.ket||'');set('M',r.op||'');set('O',r.ja?r.ja+'-'+r.jb:'');set('N',rjo);
+        if(r.first){
+          set('B',r.day);set('C',r.hari||'');set('D',new Date(Date.UTC(r.y,r.mm-1,r.day)));set('I',rsol);
+          set('J',{formula:pf?`J${pf}+I${x}`:`I${x}+(${J0})`,result:rJ});
+          set('K',{formula:`J${x}/H${x}`,result:rhs?rJ/rhs:0});
+          pf=x;
+          if(r.cnt>1)['B','C','D','I','J','K'].forEach(c=>ws.mergeCells(`${c}${x}:${c}${x+r.cnt-1}`));
+        }
+        fx=x;
+      });
+      for(let x=3;x<=fx;x++)for(let c=2;c<=15;c++){
+        const cl=ws.getCell(x,c);
+        cl.border=bd;
+        cl.alignment={vertical:'middle',horizontal:(c===12||c===13)?'left':'center',wrapText:(c===12||c===13)};
+        if([5,6,7,8,10,14].includes(c))cl.numFmt='0.0';
+        if(c===4)cl.numFmt='dd/mm/yyyy';
+        if(c===11)cl.numFmt='0.00';
+      }
+      const f=fx+2;
+      ws.getCell('H'+f).value='TOTAL SOLAR (L)';ws.getCell('I'+f).value={formula:`SUM(I3:I${fx})`};
+      ws.getCell('H'+(f+1)).value='HM BARU GANTI';ws.getCell('I'+(f+1)).value=svcBase(m.n);
+      ws.getCell('H'+(f+2)).value='HM SEKARANG';ws.getCell('I'+(f+2)).value={formula:'F'+fx,result:+R[R.length-1].f||0};
+      ws.getCell('H'+(f+5)).value='Sel HM AKHIR kuning = akhir shift';
+      ws.getCell('H'+(f+3)).value='HM SERVICE';ws.getCell('I'+(f+3)).value={formula:`I${f+2}-I${f+1}`};
+      ws.columns=[{width:3},{width:6},{width:11},{width:13},{width:11},{width:11},{width:14},{width:11},{width:14},{width:11},{width:9},{width:48},{width:20},{width:14},{width:18}];
+    });
+    if(!wb.worksheets.length){alert('Tidak ada lembar data valid untuk diunduh.');return}
     const bf=await wb.xlsx.writeBuffer(),
-          u=URL.createObjectURL(new Blob([bf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})),
-          a=document.createElement('a'),
-          safeName=m.n.replace(/[\\/:*?"<>|]+/g,'_');
-    a.href=u;a.download='Monitoring HM '+safeName+'.xlsx';
+          mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          blob=new Blob([bf],{type:mime}),
+          safeName=m.n.replace(/[\\/:*?"<>|]+/g,'_'),
+          fileName='Monitoring HM '+safeName+'.xlsx';
+    if(_lastXlsx&&_lastXlsx.url)try{URL.revokeObjectURL(_lastXlsx.url)}catch(e){}
+    const u=URL.createObjectURL(blob);
+    _lastXlsx={blob,name:fileName,url:u};
+    const a=document.createElement('a');
+    a.href=u;a.download=fileName;a.rel='noopener';
     document.body.appendChild(a);a.click();a.remove();
-    setTimeout(()=>URL.revokeObjectURL(u),4000);
-  }catch(e){alert('Gagal unduh: '+(e.message||e))}
+    let canShareFile=false;
+    try{canShareFile=!!(navigator.canShare&&navigator.canShare({files:[new File([blob],fileName,{type:mime})]}))}catch(e){}
+    box('<div style="max-width:980px;margin:0 auto"><b>File siap: '+esc(fileName)+'</b><p class="mu" style="margin:4px 0 8px">Jika tidak otomatis terunduh (misal di iPhone / browser dalam aplikasi), ketuk tombol di bawah:</p><a class="btn" href="'+u+'" download="'+esc(fileName)+'" target="_blank" rel="noopener">Simpan / Unduh Excel</a>'+(canShareFile?'<button type="button" class="btn s" onclick="shareLastXlsx()">Bagikan / Simpan ke Files (HP)</button>':'')+'<button type="button" class="btn s" onclick="$(\'#msg\').style.display=\'none\'">Tutup</button></div>');
+  }catch(e){
+    alert('Gagal membuat/unduh Excel: '+(e.message||e));
+  }finally{
+    const b2=$('#btnExp');
+    if(b2){b2.disabled=false;b2.textContent='Unduh Excel'}
+  }
 }
 
 function render(){
   if(tab!=='in'){HMJ={};JT={};ORD=[];HDIRTY=false}
   try{sessionStorage.setItem('hm_ui',JSON.stringify({tab,mon,hf,rf,rt}))}catch(e){}
   const T=[['rk','Rekap'],['in','Input'],...S.machines.map((m,i)=>['m'+i,m.n]),['ms','Master']];
-  $('#app').innerHTML=`<h1>Monitoring Hour Meter</h1><div class="tabs">${T.map(t=>`<button class="${t[0]===tab?'on':''}" onclick="tab='${t[0]}';ed=-1;render()">${esc(t[1])}</button>`).join('')}</div>`+
+  $('#app').innerHTML=`<h1>Monitoring Hour Meter</h1><div class="tabs">${T.map(t=>`<button type="button" class="${t[0]===tab?'on':''}" onclick="tab='${t[0]}';ed=-1;render()">${esc(t[1])}</button>`).join('')}</div>`+
   (tab==='rk'?rekap():tab==='in'?inputTab():tab==='ms'?masterTab():mesin(+tab.slice(1)));
   if(tab==='in'&&canEdit){dlist();jt();prev();svcFill()}
 }
@@ -630,7 +679,7 @@ async function connectDB(){
   await new Promise(res=>U.onAuthStateChanged(au,u=>{
     if(u)res();
     else{
-      document.getElementById('app').innerHTML='<div class="card" style="max-width:420px;margin:30px auto"><b>Masuk</b><label>Email</label><input id="lgE" type="email"><label>Password</label><input id="lgP" type="password"><button class="btn" id="lgB">Masuk</button><p id="lgM" class="mu"></p></div>';
+      document.getElementById('app').innerHTML='<div class="card" style="max-width:420px;margin:30px auto"><b>Masuk</b><label>Email</label><input id="lgE" type="email"><label>Password</label><input id="lgP" type="password"><button type="button" class="btn" id="lgB">Masuk</button><p id="lgM" class="mu"></p></div>';
       document.getElementById('lgB').onclick=async()=>{try{await U.signInWithEmailAndPassword(au,document.getElementById('lgE').value.trim(),document.getElementById('lgP').value)}catch(x){document.getElementById('lgM').textContent='Email atau password salah.'}};
     }
   }));
