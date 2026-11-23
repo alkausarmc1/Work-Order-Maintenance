@@ -85,7 +85,9 @@ button:not(:disabled):active{transform:translateY(1px);filter:brightness(.85)}
 .jc.cfp::before,.wj.cfp::before{content:"Pilih stasiun";display:block;font-size:12px;font-weight:700;color:var(--bad);margin-bottom:4px}
 .wj,.wj.cfc,.wj.cfp{border-left:0;padding-left:0;border-top:1px solid var(--ln);padding-top:8px}
 #gs{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:5;max-width:976px;margin:0 auto;border:1px solid var(--lc);box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.bk{display:inline-block;padding:8px 2px;margin-bottom:2px;font-size:15px;font-weight:600;color:var(--pr);text-decoration:none}.bk:hover{text-decoration:underline}.bk:focus-visible{outline:3px solid #f0a500;outline-offset:2px}@media print{.bk{display:none}}
 </style></head><body><div class="w"><header>
+<a class="bk" href="menu.html">← Menu utama</a>
 <h1>Job Maintenance 2026 <span class="chip" id="stat" role="status">memuat…</span></h1>
 <div class="sub">Isi job harian, stasiun terisi otomatis, rekap langsung jalan.</div></header>
 <nav class="tabs" aria-label="Menu halaman"><button data-v="in" class="on">Input</button><button data-v="da">Data</button><button data-v="re">Rekap</button><button data-v="ot">Lembur</button></nav><div id="gs" class="msg hid" role="status"></div>
