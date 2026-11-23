@@ -24,6 +24,16 @@ input{font:inherit;color:var(--ink);padding:10px;border:1px solid var(--line);bo
 .bar div{max-width:720px;margin:0 auto;display:flex;gap:10px;align-items:center}.bar span{flex:1;font-size:15px;color:var(--mut)}
 .btn{border:0;cursor:pointer;background:var(--ac);color:#fff;font-weight:700;font-size:18px;font-family:inherit;padding:13px 20px;border-radius:4px}.btn[disabled]{opacity:.5}
 :focus-visible{outline:3px solid #f0a500;outline-offset:2px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}
+.tabs button{font:700 16px inherit;font-family:inherit;padding:11px 4px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:4px;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tw{overflow-x:auto;margin-top:8px}table.t{border-collapse:collapse;width:100%;font-size:14px;background:#fff}
+.t th,.t td{border:1px solid var(--line);padding:4px 6px;text-align:right;white-space:nowrap}.t th{background:#f3f5f7;text-align:center}
+.t td:first-child,.t th:first-child{text-align:left;position:sticky;left:0;background:#fff;z-index:1}.t th:first-child{background:#f3f5f7}
+.t tr.ar td{background:#dde3e8;font-weight:700;text-align:left}.t .c{text-align:center;white-space:normal}.t .k{text-align:left;white-space:normal}
+.t .rd{background:#f4b6b6;font-weight:700}.t .wr{color:var(--r);font-weight:700}.t .z{color:var(--mut)}
+.sh{display:flex;justify-content:space-between;font-weight:700;font-size:15px;margin-top:16px}
+@media print{.noprint,.bar{display:none!important}body{background:#fff;padding:0}main{max-width:none;padding:0}.t{font-size:10px}.t td:first-child,.t th:first-child{position:static}.sh{break-after:avoid}.tw{break-inside:avoid;overflow:visible}}
 .note{background:#fff4d6;border:1px solid #e3c56a;border-radius:4px;padding:8px 10px;font-size:15px;margin:10px 0}.ok{background:#e3f1e8;border-color:#8fc3a2}.bad{background:#fbe4e1;border-color:#e0958e}
 </style></head><body><main id="app"><p class="sub">Memuat...</p></main>
 <div class="bar" id="bar" hidden><div><span id="cnt"></span><button class="btn" id="sv">Simpan</button></div></div>
@@ -47,6 +57,8 @@ async function connect(){
  const rs=await F.getDoc(F.doc(db,'users',au.currentUser.uid));
  return{role:rs.exists()?rs.data().role:null,email:au.currentUser.email,
   load:async()=>(await F.getDocs(F.query(F.collection(db,'mesin'),F.where('vital','==',true)))).docs.map(d=>({id:d.id,...d.data()})),
+  log:async a=>(await F.getDocs(F.query(F.collection(db,'hm_log'),F.where('tanggal','>=',a)))).docs.map(d=>d.data()),
+  sp:async()=>(await F.getDocs(F.collection(db,'sparepart_standar'))).docs.map(d=>({id:d.id,...d.data()})),
   save:async(rows,tgl,oleh,jam)=>{const ops=[];rows.forEach(r=>{ops.push(b=>b.set(F.doc(db,'hm_log',r.id+'_'+tgl),{mesin_id:r.id,tanggal:tgl,hm:r.hm,hm_alat:r.alat,hm_offset:r.off||0,dicatat_oleh:oleh,catatan:r.reset?'Meter diganti':'',...(r.reset?{reset_meter:true}:{}),dibuat:F.serverTimestamp()}));
    ops.push(b=>b.update(F.doc(db,'mesin',r.id),{hm:r.hm,hm_tgl:tgl,hm_sementara:F.deleteField(),...(r.reset?{hm_offset:r.off}:{})}))});
    if(jam!=null)ops.push(b=>b.set(F.doc(db,'jam_olah',tgl),{tanggal:tgl,jam:jam}));
@@ -68,11 +80,48 @@ const val=(m,c,tgl)=>{
  if(c.reset)return{k:'wr',t:ex+'Naik '+N(dl)+' HM dari HM terakhir.'};
  if(dl>24*gap+8)return{k:'wr',t:ex+'Naik '+N(dl)+' HM dalam '+gap+' hari, lebih dari 24 jam per hari.',confirm:true};
  return{k:'up',t:ex+'Naik '+N(dl)+' HM'}};
+let TAB='in',RW='';
+const nf=(x,d=0)=>x==null||x===''||isNaN(x)?'-':(+x).toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});
+const addD=(s,n)=>{const d=new Date(s+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+const dm=s=>s?String(s).split('-').reverse().join('/'):'';
+const rk=a=>ORDER.indexOf(a)<0?99:ORDER.indexOf(a);
+const tabs=()=>'<div class="tabs noprint">'+[['in','Input'],['rk','Rekap harian'],['mn','Monitoring mingguan']].map(t=>`<button data-t="${t[0]}" aria-selected="${t[0]===TAB}">${t[1]}</button>`).join('')+'</div>';
+function bindTabs(){document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;draw()})}
+async function rekap(){
+ const end=RW||today(),days=[...Array(7)].map((_,i)=>addD(end,i-6)),H={};
+ (await API.log(addD(end,-14))).filter(r=>r.tanggal<=end).forEach(r=>(H[r.mesin_id]=H[r.mesin_id]||{})[r.tanggal]=+r.hm);
+ const dl=(id,d)=>{const h=H[id]||{};if(h[d]==null)return null;let p=null;Object.keys(h).filter(x=>x<d).sort().forEach(x=>p=h[x]);return p==null?null:r1(h[d]-p)};
+ const by={};M.forEach(m=>(by[m.area]=by[m.area]||[]).push(m));
+ const body=Object.keys(by).sort((a,b)=>rk(a)-rk(b)||a.localeCompare(b)).map(a=>`<tr class="ar"><td colspan="10">${E(a)}</td></tr>`+by[a].sort((x,y)=>String(x.nama).localeCompare(String(y.nama),'id',{numeric:true})).map(m=>{let t=0,any=false;
+  const c=days.map(d=>{const v=dl(m.id,d);if(v==null)return'<td class="z">-</td>';any=true;t+=v;return`<td class="${v>24?'wr':''}">${N(v)}</td>`}).join('');
+  return`<tr><td>${E(m.nama)}</td>${c}<td><b>${any?N(r1(t)):'-'}</b></td><td>${N(m.hm)}</td></tr>`}).join('')).join('');
+ return`<div class="card noprint"><label for="rw">Minggu berakhir pada tanggal</label><input id="rw" type="date" value="${end}" max="${today()}"></div><div class="sh"><span>Rekap HM harian (jam jalan per hari)</span><span class="sub">${dm(days[0])} sampai ${dm(end)}</span></div><div class="tw"><table class="t"><tr><th>Mesin</th>${days.map(d=>`<th>${d.slice(8)}/${d.slice(5,7)}</th>`).join('')}<th>Total</th><th>HM akhir</th></tr>${body}</table></div><p class="sub">Selisih HM dengan catatan sebelumnya. Angka merah berarti lebih dari 24 jam. Tanda - berarti belum ada input pada hari itu.</p>`}
+const MORD=['SCREW PRESS','PRESS CAGE PRESS','CONNECTOR','BUSH','TIE ROD','LENGTHEN','LONG','EXPELLER','ROTOR','STATOR','SCREW EMPTY','PRESS CAGE EMPTY','TURBIN','GENSET','DECANTER','VIBRATING SCREEN PRESS','CLAYBATH','VIBRATING SCREEN EB'];
+async function monit(){
+ const SPD=await API.sp(),MS=Object.fromEntries(M.map(m=>[m.id,m])),G={},n=new Date(),p2=x=>String(x).padStart(2,'0');
+ const stamp=`${p2(n.getDate())}/${p2(n.getMonth()+1)}/${n.getFullYear()} ${p2(n.getHours())}:${p2(n.getMinutes())}`,mg=Math.min(4,Math.ceil(n.getDate()/7));
+ SPD.filter(s=>MS[s.mesin_id]).forEach(s=>{const k=String(s.komponen).toUpperCase();(G[k]=G[k]||[]).push(s)});
+ const rk2=k=>{const i=MORD.findIndex(o=>k.includes(o));return i<0?99:i},keys=Object.keys(G).sort((a,b)=>rk2(a)-rk2(b)||a.localeCompare(b));
+ return`<div class="card noprint"><div class="sub">Minggu ${mg} ${n.toLocaleDateString('id-ID',{month:'long',year:'numeric'})}. "S/D hari ini" mengikuti HM terakhir yang diinput.</div><button class="btn" id="pr" style="margin-top:8px;width:100%">Cetak / Simpan PDF</button></div>
+ <div style="text-align:center;font-weight:700;margin-top:10px">PT. KHARISMA ALAM PERSADA MILL<br>WEEKLY HOUR METER MONITORING</div>`+(keys.map((k,i)=>{
+  const rows=G[k].sort((a,b)=>String(MS[a.mesin_id].nama).localeCompare(String(MS[b.mesin_id].nama),'id',{numeric:true})),f=rows[0],d=/ROTOR|STATOR/.test(k)?2:0;
+  return`<div class="sh"><span>${i+1}. ${E(k)}</span><span class="sub">${stamp}</span></div><div class="tw"><table class="t"><tr><th rowspan="2">No</th><th rowspan="2">Jenis alat</th><th colspan="2">Service terakhir</th><th rowspan="2">S/D hari ini</th><th rowspan="2">Total HM</th><th rowspan="2">Keterangan service terakhir${f.standar_hm?'<br>('+(f.standar_min_hm?f.standar_min_hm+' - ':'')+f.standar_hm+' HM)':''}</th></tr><tr><th>Tgl</th><th>HM</th></tr>
+  ${rows.map((s,j)=>{const m=MS[s.mesin_id],h=m.hm!=null?+m.hm:null,t=h!=null&&s.hm_service_terakhir!=null?h-s.hm_service_terakhir:null,lim=s.standar_min_hm||s.standar_hm;
+   return`<tr><td class="c">${j+1}</td><td class="c">${E(String(m.nama).toUpperCase())}</td><td class="c">${dm(s.tgl_service_terakhir)}</td><td>${s.tgl_service_terakhir?nf(s.hm_service_terakhir,d):''}</td><td>${nf(h,d)}</td><td class="${t!=null&&lim&&t>=lim?'rd':''}">${nf(t,d)}</td><td class="k">${E(s.keterangan)}</td></tr>`}).join('')}</table></div>`}).join('')||'<p class="empty sub">Belum ada data sparepart.</p>')}
+async function other(){
+ $('#bar').hidden=true;
+ const top=`<div class="top noprint"><a href="menu.html">Menu</a><span class="sub">${M.length} unit</span></div><h1 class="noprint">Input HM mesin</h1>${tabs()}`;
+ app.innerHTML=top+'<p class="sub">Memuat...</p>';bindTabs();
+ try{if(!API.log)throw new Error('Fitur ini butuh koneksi Firebase.');
+  app.innerHTML=top+(TAB==='rk'?await rekap():await monit());bindTabs();
+  if($('#rw'))$('#rw').onchange=e=>{RW=e.target.value;draw()};if($('#pr'))$('#pr').onclick=()=>print()}
+ catch(e){app.innerHTML=top+'<div class="note bad">Gagal memuat: '+E(e.message||e)+'</div>';bindTabs()}}
 function draw(){
+ if(TAB!=='in')return other();
  const tgl=($('#tg')||{}).value||today(),who=($('#nm')||{}).value??localStorage.getItem('hmoleh')??'',jam=($('#jm')||{}).value??'';
  const by={};M.forEach(m=>(by[m.area]=by[m.area]||[]).push(m));
  const areas=Object.keys(by).sort((a,b)=>(ORDER.indexOf(a)<0?99:ORDER.indexOf(a))-(ORDER.indexOf(b)<0?99:ORDER.indexOf(b))||a.localeCompare(b));
- app.innerHTML=`<div class="top"><a href="menu.html">Menu</a><span class="sub">${M.length} unit</span></div><h1>Input HM mesin</h1>${msg?'<div class="note ok">'+E(msg)+'</div>':''}
+ app.innerHTML=`<div class="top"><a href="menu.html">Menu</a><span class="sub">${M.length} unit</span></div><h1>Input HM mesin</h1>${tabs()}${msg?'<div class="note ok">'+E(msg)+'</div>':''}
  <div class="card"><div class="hd"><div><label for="tg">Tanggal</label><input id="tg" type="date" value="${tgl}" max="${today()}"></div><div><label for="nm">Nama pencatat</label><input id="nm" value="${E(who)}" autocomplete="name"></div></div>
  <div style="margin-top:10px"><label for="jm">Jam olah hari ini (CBC), opsional</label><input id="jm" inputmode="decimal" autocomplete="off" placeholder="contoh 19.5" value="${E(jam)}"><div class="d er" id="jme"></div></div></div>
  <p class="sub" style="margin:10px 2px 0">Isi HM sesuai angka yang tertera di alat. Kalau meter pernah diganti, sistem menambahkan offset otomatis.</p>`+
@@ -81,7 +130,7 @@ function draw(){
  document.querySelectorAll('.r input[data-id]').forEach(i=>i.oninput=()=>{i.value=d1(i.value);V[i.dataset.id]=i.value;chk()});
  document.querySelectorAll('.r input[data-rd]').forEach(i=>i.oninput=()=>{i.value=d1(i.value);RS[i.dataset.rd].data=i.value;chk()});
  document.querySelectorAll('a[data-r]').forEach(a=>a.onclick=e=>{e.preventDefault();const id=a.dataset.r;RS[id]=RS[id]&&RS[id].on?null:{on:true,data:''};draw()});
- $('#tg').onchange=chk;$('#jm').oninput=e=>{e.target.value=d1(e.target.value);chk()};chk()}
+ bindTabs();$('#tg').onchange=chk;$('#jm').oninput=e=>{e.target.value=d1(e.target.value);chk()};chk()}
 function chk(){const tgl=$('#tg').value;let n=0,bad=0;
  M.forEach(m=>{const el=document.getElementById('d-'+m.id);if(!el)return;const c=calc(m,V[m.id]),v=c&&val(m,c,tgl);let h='';
   if(v){n++;h=`<span class="${v.k}">${E(v.t)}</span>`;
