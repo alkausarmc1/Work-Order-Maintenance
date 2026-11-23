@@ -35,6 +35,16 @@ input{font:inherit;color:var(--ink);padding:10px;border:1px solid var(--line);bo
 .sh{display:flex;justify-content:space-between;font-weight:700;font-size:15px;margin-top:16px}
 @media print{.noprint,.bar{display:none!important}body{background:#fff;padding:0}main{max-width:none;padding:0}.t{font-size:10px}.t td:first-child,.t th:first-child{position:static}.sh{break-after:avoid}.tw{break-inside:avoid;overflow:visible}}
 .note{background:#fff4d6;border:1px solid #e3c56a;border-radius:4px;padding:8px 10px;font-size:15px;margin:10px 0}.ok{background:#e3f1e8;border-color:#8fc3a2}.bad{background:#fbe4e1;border-color:#e0958e}
+
+/* Monitoring mingguan: mengikuti template Excel HM_Weekly_Monitoring */
+.mt0{text-align:center;font:700 16px/1.35 Calibri,Carlito,Arial,sans-serif;margin:14px 0 4px;color:#000}
+.ms{margin-top:16px;break-inside:avoid}
+.mh{display:flex;justify-content:space-between;align-items:baseline;font:700 14px Calibri,Carlito,Arial,sans-serif;color:#000;margin-bottom:2px}.mh span{font-weight:400;font-size:13px}
+.mt{border-collapse:collapse;table-layout:fixed;width:100%;min-width:700px;border:2px solid #000;font:13px Calibri,Carlito,Arial,sans-serif;color:#000;background:#fff}
+.mt th,.mt td{border:1px solid #000;padding:3px 6px;text-align:center;vertical-align:middle;height:27px;font-variant-numeric:tabular-nums}
+.mt th{font-weight:700;background:#fff}.mt .hb{border-bottom:2px solid #000}.mt .nb{border-bottom-style:hidden}
+.mt td.nm{white-space:pre-line}.mt td.k{white-space:normal}.mt td.rd{background:#ffc7ce;color:#9c0006}.mt td.kc{cursor:pointer}
+@media print{@page{size:A4 portrait;margin:10mm}.mt{font-size:9.5px;min-width:0}.mt th,.mt td{padding:1px 3px;height:19px}.mt .off,.mt col.off{display:none}.ms{margin-top:10px}.mt0{font-size:13px}.mh{font-size:11px}.mh span{font-size:10px}}
 </style></head><body><main id="app"><p class="sub">Memuat...</p></main>
 <div class="bar" id="bar" hidden><div><span id="cnt"></span><button class="btn" id="sv">Simpan</button></div></div>
 <script type="module">
@@ -59,6 +69,7 @@ async function connect(){
   load:async()=>(await F.getDocs(F.query(F.collection(db,'mesin'),F.where('vital','==',true)))).docs.map(d=>({id:d.id,...d.data()})),
   log:async a=>(await F.getDocs(F.query(F.collection(db,'hm_log'),F.where('tanggal','>=',a)))).docs.map(d=>d.data()),
   sp:async()=>(await F.getDocs(F.collection(db,'sparepart_standar'))).docs.map(d=>({id:d.id,...d.data()})),
+  kond:async(id,t)=>F.updateDoc(F.doc(db,'sparepart_standar',id),{kondisi:t}),
   save:async(rows,tgl,oleh,jam)=>{const ops=[];rows.forEach(r=>{ops.push(b=>b.set(F.doc(db,'hm_log',r.id+'_'+tgl),{mesin_id:r.id,tanggal:tgl,hm:r.hm,hm_alat:r.alat,hm_offset:r.off||0,dicatat_oleh:oleh,catatan:r.reset?'Meter diganti':'',...(r.reset?{reset_meter:true}:{}),dibuat:F.serverTimestamp()}));
    ops.push(b=>b.update(F.doc(db,'mesin',r.id),{hm:r.hm,hm_tgl:tgl,hm_sementara:F.deleteField(),...(r.reset?{hm_offset:r.off}:{})}))});
    if(jam!=null)ops.push(b=>b.set(F.doc(db,'jam_olah',tgl),{tanggal:tgl,jam:jam}));
@@ -97,24 +108,32 @@ async function rekap(){
   return`<tr><td>${E(m.nama)}</td>${c}<td><b>${any?N(r1(t)):'-'}</b></td><td>${N(m.hm)}</td></tr>`}).join('')).join('');
  return`<div class="card noprint"><label for="rw">Minggu berakhir pada tanggal</label><input id="rw" type="date" value="${end}" max="${today()}"></div><div class="sh"><span>Rekap HM harian (jam jalan per hari)</span><span class="sub">${dm(days[0])} sampai ${dm(end)}</span></div><div class="tw"><table class="t"><tr><th>Mesin</th>${days.map(d=>`<th>${d.slice(8)}/${d.slice(5,7)}</th>`).join('')}<th>Total</th><th>HM akhir</th></tr>${body}</table></div><p class="sub">Selisih HM dengan catatan sebelumnya. Angka merah berarti lebih dari 24 jam. Tanda - berarti belum ada input pada hari itu.</p>`}
 const MORD=['SCREW PRESS','PRESS CAGE PRESS','CONNECTOR','BUSH','TIE ROD','LENGTHEN','LONG','EXPELLER','ROTOR','STATOR','SCREW EMPTY','PRESS CAGE EMPTY','TURBIN','GENSET','DECANTER','VIBRATING SCREEN PRESS','CLAYBATH','VIBRATING SCREEN EB'];
+const TITLES=[[/SCREW EMPTY/,'SCREW EMPTY BUNCH PRESS'],[/PRESS CAGE EMPTY/,'PRESS CAGE EMPTY BUNCH PRESS'],[/PRESS CAGE/,'PRESS CAGE PRESS'],[/CONNECTOR/,'CONNECTOR PRESS RH/LH'],[/BUSH/,'BUSH PRESS'],[/TIE ROD/,'TIE ROD LH/RH PRESS'],[/LENGTHEN/,'WORM LENGTHENING SHAFT'],[/LONG/,'LONG & SHORT ARMS DIGESTER'],[/EXPELLER/,'EXPELLER ARMS DIGESTER'],[/ROTOR|STATOR/,'RIPPLE MILL'],[/TURBIN/,'STEAM TURBINE']];
+const ttl=k=>{const t=TITLES.find(x=>x[0].test(k));return t?t[1]:k};
+const nz=(x,d=0)=>x==null||x===''||isNaN(x)||+x===0?'-':nf(x,d);
 async function monit(){
  const SPD=await API.sp(),MS=Object.fromEntries(M.map(m=>[m.id,m])),G={},n=new Date(),p2=x=>String(x).padStart(2,'0');
- const stamp=`${p2(n.getDate())}/${p2(n.getMonth()+1)}/${n.getFullYear()} ${p2(n.getHours())}:${p2(n.getMinutes())}`,mg=Math.min(4,Math.ceil(n.getDate()/7));
+ const stamp=`${p2(n.getDate())}/${p2(n.getMonth()+1)}/${n.getFullYear()} ${p2(n.getHours())}:${p2(n.getMinutes())}`,mg=Math.min(5,Math.ceil(n.getDate()/7));
  SPD.filter(s=>MS[s.mesin_id]).forEach(s=>{const k=String(s.komponen).toUpperCase();(G[k]=G[k]||[]).push(s)});
  const rk2=k=>{const i=MORD.findIndex(o=>k.includes(o));return i<0?99:i},keys=Object.keys(G).sort((a,b)=>rk2(a)-rk2(b)||a.localeCompare(b));
- return`<div class="card noprint"><div class="sub">Minggu ${mg} ${n.toLocaleDateString('id-ID',{month:'long',year:'numeric'})}. "S/D hari ini" mengikuti HM terakhir yang diinput.</div><button class="btn" id="pr" style="margin-top:8px;width:100%">Cetak / Simpan PDF</button></div>
- <div style="text-align:center;font-weight:700;margin-top:10px">PT. KHARISMA ALAM PERSADA MILL<br>WEEKLY HOUR METER MONITORING</div>`+(keys.map((k,i)=>{
-  const rows=G[k].sort((a,b)=>String(MS[a.mesin_id].nama).localeCompare(String(MS[b.mesin_id].nama),'id',{numeric:true})),f=rows[0],d=/ROTOR|STATOR/.test(k)?2:0;
-  return`<div class="sh"><span>${i+1}. ${E(k)}</span><span class="sub">${stamp}</span></div><div class="tw"><table class="t"><tr><th rowspan="2">No</th><th rowspan="2">Jenis alat</th><th colspan="2">Service terakhir</th><th rowspan="2">S/D hari ini</th><th rowspan="2">Total HM</th><th rowspan="2">Keterangan service terakhir${f.standar_hm?'<br>('+(f.standar_min_hm?f.standar_min_hm+' - ':'')+f.standar_hm+' HM)':''}</th></tr><tr><th>Tgl</th><th>HM</th></tr>
-  ${rows.map((s,j)=>{const m=MS[s.mesin_id],h=m.hm!=null?+m.hm:null,t=h!=null&&s.hm_service_terakhir!=null?h-s.hm_service_terakhir:null,lim=s.standar_min_hm||s.standar_hm;
-   return`<tr><td class="c">${j+1}</td><td class="c">${E(String(m.nama).toUpperCase())}</td><td class="c">${dm(s.tgl_service_terakhir)}</td><td>${s.tgl_service_terakhir?nf(s.hm_service_terakhir,d):''}</td><td>${nf(h,d)}</td><td class="${t!=null&&lim&&t>=lim?'rd':''}">${nf(t,d)}</td><td class="k">${E(s.keterangan)}</td></tr>`}).join('')}</table></div>`}).join('')||'<p class="empty sub">Belum ada data sparepart.</p>')}
+ return`<div class="card noprint"><div class="sub">Minggu ${mg} ${n.toLocaleDateString('id-ID',{month:'long',year:'numeric'})}. "S/D hari ini" mengikuti HM terakhir yang diinput. Ketuk kolom "Kondisi saat ini" untuk mengisi atau mengubah.</div><button class="btn" id="pr" style="margin-top:8px;width:100%">Cetak / Simpan PDF</button></div>
+ <div class="mt0">PT. KHARISMA ALAM PERSADA MILL<br>WEEKLY HOUR METER MONITORING</div>`+(keys.map((k,i)=>{
+  const rows=G[k].sort((a,b)=>String(MS[a.mesin_id].nama).localeCompare(String(MS[b.mesin_id].nama),'id',{numeric:true})),f=rows[0],d=/ROTOR|STATOR/.test(k)?2:0,
+   hk=rows.some(s=>s.kondisi)||/DECANTER|VIBRATING/.test(k),off=hk?'':' off',
+   std=f.standar_hm?'('+(f.standar_min_hm?f.standar_min_hm+' - ':'')+f.standar_hm+' HM)':'';
+  return`<div class="ms"><div class="mh"><span style="font-weight:700;font-size:inherit">${i+1}. ${E(ttl(k))}</span><span>${stamp}</span></div><div class="tw"><table class="mt"><colgroup><col style="width:5%"><col style="width:19%"><col style="width:10%"><col style="width:10%"><col style="width:10%"><col style="width:8%"><col><col class="${off.trim()}" style="width:16%"></colgroup>
+  <tr><th rowspan="2" class="hb" style="width:5%">No</th><th rowspan="2" class="hb" style="width:20%">Jenis Alat</th><th colspan="2">SERVICE TERAKHIR</th><th rowspan="2" class="hb" style="width:10%">S/D HARI INI</th><th rowspan="2" class="hb" style="width:8%">TOTAL<br>HM</th><th class="nb">KETERANGAN SERVICE TERAKHIR</th><th rowspan="2" class="hb kc${off}" style="width:16%">Kondisi Saat ini</th></tr>
+  <tr><th class="hb" style="width:10%">TGL</th><th class="hb" style="width:10%">HM</th><th class="hb">${E(std)}</th></tr>
+  ${rows.map((s,j)=>{const m=MS[s.mesin_id],h=m.hm!=null?+m.hm:null,base=s.hm_service_terakhir!=null&&s.hm_service_terakhir!==''?+s.hm_service_terakhir:null,t=h!=null&&base!=null?h-base:null,lim=s.standar_min_hm||s.standar_hm;
+   return`<tr><td>${j+1}</td><td class="nm">${E(String(m.nama).toUpperCase())}</td><td>${dm(s.tgl_service_terakhir)}</td><td>${nz(base,d)}</td><td>${nz(h,d)}</td><td class="${t!=null&&lim&&t>=lim?'rd':''}">${nz(t)}</td><td class="k">${E(s.keterangan)}</td><td class="k kc${off}" data-kd="${E(s.id)}" title="Ketuk untuk mengubah kondisi">${E(s.kondisi)}</td></tr>`}).join('')}</table></div></div>`}).join('')||'<p class="empty sub">Belum ada data sparepart.</p>')}
 async function other(){
  $('#bar').hidden=true;
  const top=`<div class="top noprint"><a href="menu.html">Menu</a><span class="sub">${M.length} unit</span></div><h1 class="noprint">Input HM mesin</h1>${tabs()}`;
  app.innerHTML=top+'<p class="sub">Memuat...</p>';bindTabs();
  try{if(!API.log)throw new Error('Fitur ini butuh koneksi Firebase.');
   app.innerHTML=top+(TAB==='rk'?await rekap():await monit());bindTabs();
-  if($('#rw'))$('#rw').onchange=e=>{RW=e.target.value;draw()};if($('#pr'))$('#pr').onclick=()=>print()}
+  if($('#rw'))$('#rw').onchange=e=>{RW=e.target.value;draw()};if($('#pr'))$('#pr').onclick=()=>print();
+  document.querySelectorAll('td[data-kd]').forEach(td=>td.onclick=async()=>{if(!API.kond)return;const v=prompt('Kondisi saat ini:',td.textContent.trim());if(v===null)return;try{await API.kond(td.dataset.kd,v.trim());other()}catch(e){alert('Gagal menyimpan: '+(e.message||e))}})}
  catch(e){app.innerHTML=top+'<div class="note bad">Gagal memuat: '+E(e.message||e)+'</div>';bindTabs()}}
 function draw(){
  if(TAB!=='in')return other();

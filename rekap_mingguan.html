@@ -14,7 +14,16 @@ h1{font-size:15px;text-align:center;margin:6px 0 0}h1+p{text-align:center;font-w
 table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid var(--line);padding:2px 4px}
 th{background:#f3f3f3;text-align:center}td.n{text-align:right;font-variant-numeric:tabular-nums}td.c{text-align:center}
 .red{background:#f4b6b6;font-weight:700}.sub{color:#51606d}
-@media print{@page{size:A4;margin:10mm}body{background:#fff;font-size:10px}main{max-width:none;padding:0}.noprint{display:none!important}table{font-size:9px}}
+@media print{@page{size:A4 portrait;margin:10mm}body{background:#fff;font-size:10px}main{max-width:none;padding:0}.noprint{display:none!important}table{font-size:9px}}
+.mt0{text-align:center;font:700 16px/1.35 Calibri,Carlito,Arial,sans-serif;margin:6px 0 4px}
+.mh{display:flex;justify-content:space-between;align-items:baseline;font:700 14px Calibri,Carlito,Arial,sans-serif;margin-bottom:2px}.mh span+span{font-weight:400;font-size:13px}
+.tw{overflow-x:auto}
+.mt{border-collapse:collapse;table-layout:fixed;width:100%;min-width:700px;border:2px solid #000;font:13px Calibri,Carlito,Arial,sans-serif;color:#000;background:#fff}
+.mt th,.mt td{border:1px solid #000;padding:3px 6px;text-align:center;vertical-align:middle;height:27px;font-variant-numeric:tabular-nums}
+.mt th{font-weight:700;background:#fff}.mt .hb{border-bottom:2px solid #000}.mt .nb{border-bottom-style:hidden}
+.mt td.nm{white-space:pre-line}.mt td.k{white-space:normal}.mt td.rd{background:#ffc7ce;color:#9c0006;font-weight:400}.mt td.kc.ed{cursor:pointer}
+.mt .sm{display:block;margin:3px auto 0}
+@media print{.mt{font-size:9.5px;min-width:0}.mt th,.mt td{padding:1px 3px;height:19px}.mt .off,.mt col.off{display:none}.tw{overflow:visible}.mt0{font-size:13px}.mh{font-size:11px}.mh span+span{font-size:10px}}
 </style></head><body><main id="app"><p>Memuat...</p></main>
 <script type="module">
 const FBU='https://www.gstatic.com/firebasejs/10.14.1/',$=s=>document.querySelector(s),app=$('#app');
@@ -23,8 +32,11 @@ let C={};try{C=JSON.parse(localStorage.getItem('jmcfg')||'{}')}catch(e){}
 // urutan bagian mengikuti PDF; komponen lain di luar daftar ditaruh di akhir
 const ORDER=['SCREW PRESS','PRESS CAGE PRESS','CONNECTOR','BUSH','TIE ROD','LENGTHEN','LONG','EXPELLER','ROTOR','STATOR','SCREW EMPTY','PRESS CAGE EMPTY','TURBIN','GENSET','DECANTER','VIBRATING SCREEN PRESS','CLAYBATH','VIBRATING SCREEN EB'];
 const rank=k=>{const i=ORDER.findIndex(o=>k.includes(o));return i<0?99:i};
+const TITLES=[[/SCREW EMPTY/,'SCREW EMPTY BUNCH PRESS'],[/PRESS CAGE EMPTY/,'PRESS CAGE EMPTY BUNCH PRESS'],[/PRESS CAGE/,'PRESS CAGE PRESS'],[/CONNECTOR/,'CONNECTOR PRESS RH/LH'],[/BUSH/,'BUSH PRESS'],[/TIE ROD/,'TIE ROD LH/RH PRESS'],[/LENGTHEN/,'WORM LENGTHENING SHAFT'],[/LONG/,'LONG & SHORT ARMS DIGESTER'],[/EXPELLER/,'EXPELLER ARMS DIGESTER'],[/ROTOR|STATOR/,'RIPPLE MILL'],[/TURBIN/,'STEAM TURBINE']];
+const ttl=k=>{const t=TITLES.find(x=>x[0].test(k));return t?t[1]:k};
 let F,db,MS={},SP=[],admin=false;
 const nf=(x,d=0)=>x==null||x===''||isNaN(x)?'-':(+x).toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});
+const nz=(x,d=0)=>x==null||x===''||isNaN(x)||+x===0?'-':nf(x,d);
 const dt=s=>s?String(s).split('-').reverse().join('/'):'';
 const pad=n=>String(n).padStart(2,'0');
 function login(U,au){return new Promise(res=>{app.innerHTML='<form id="lg"><b>Masuk</b><p><input id="e" type="email" placeholder="Email" autocomplete="username"> <input id="p" type="password" placeholder="Password" autocomplete="current-password"> <button class="btn">Masuk</button></p><p id="m"></p></form>';
@@ -42,14 +54,17 @@ function draw(){const n=new Date(),stamp=`${pad(n.getDate())}/${pad(n.getMonth()
  const G={};SP.filter(s=>MS[s.mesin_id]).forEach(s=>(G[String(s.komponen).toUpperCase()]=G[String(s.komponen).toUpperCase()]||[]).push(s));
  const keys=Object.keys(G).sort((a,b)=>rank(a)-rank(b)||a.localeCompare(b));
  app.innerHTML=`<div class="tb noprint"><a href="menu.html">Menu</a><span class="sub">Minggu ${mg} ${bln}. "S/D hari ini" = HM terakhir dari Input HM.</span><button class="btn" onclick="print()">Cetak / Simpan PDF</button></div>
- <h1>PT. KHARISMA ALAM PERSADA MILL</h1><p>WEEKLY HOUR METER MONITORING</p>`+keys.map((k,i)=>{
-  const rows=G[k].sort((a,b)=>String(MS[a.mesin_id].nama).localeCompare(String(MS[b.mesin_id].nama),'id',{numeric:true})),f=rows[0],dec=/ROTOR|STATOR/.test(k)?2:0;
-  const std=f.standar_hm?`(${f.standar_min_hm?f.standar_min_hm+' - ':''}${f.standar_hm} HM)`:'';
-  return `<div class="sec"><div class="sh"><span>${i+1}. ${E(k)}</span><span>${stamp}</span></div><table><colgroup><col width="4%"><col width="22%"><col width="11%"><col width="11%"><col width="11%"><col width="9%"><col></colgroup>
-  <tr><th rowspan="2">No</th><th rowspan="2">Jenis Alat</th><th colspan="2">SERVICE TERAKHIR</th><th rowspan="2">S/D HARI INI</th><th rowspan="2">TOTAL HM</th><th rowspan="2">KETERANGAN SERVICE TERAKHIR<br>${E(std)}</th></tr><tr><th>TGL</th><th>HM</th></tr>
-  ${rows.map((s,j)=>{const m=MS[s.mesin_id],hm=m.hm!=null?+m.hm:null,tot=hm!=null&&s.hm_service_terakhir!=null?hm-s.hm_service_terakhir:null,lim=s.standar_min_hm||s.standar_hm;
-   return `<tr><td class="c">${j+1}</td><td class="c">${E(String(m.nama).toUpperCase())}</td><td class="c">${dt(s.tgl_service_terakhir)}</td><td class="n">${s.tgl_service_terakhir?nf(s.hm_service_terakhir,dec):''}</td><td class="n">${nf(hm,dec)}</td><td class="n${tot!=null&&lim&&tot>=lim?' red':''}">${nf(tot,dec)}</td><td>${E(s.keterangan)}${admin?` <button class="btn sm noprint" data-id="${E(s.id)}">Catat servis</button>`:''}</td></tr>`}).join('')}</table></div>`}).join('')||'<p>Belum ada data sparepart.</p>';
- document.querySelectorAll('button[data-id]').forEach(b=>b.onclick=()=>servis(b.dataset.id))}
+ <div class="mt0">PT. KHARISMA ALAM PERSADA MILL<br>WEEKLY HOUR METER MONITORING</div>`+keys.map((k,i)=>{
+  const rows=G[k].sort((a,b)=>String(MS[a.mesin_id].nama).localeCompare(String(MS[b.mesin_id].nama),'id',{numeric:true})),f=rows[0],dec=/ROTOR|STATOR/.test(k)?2:0,
+   hk=rows.some(s=>s.kondisi)||/DECANTER|VIBRATING/.test(k),off=hk?'':' off',
+   std=f.standar_hm?'('+(f.standar_min_hm?f.standar_min_hm+' - ':'')+f.standar_hm+' HM)':'';
+  return `<div class="sec"><div class="mh"><span>${i+1}. ${E(ttl(k))}</span><span>${stamp}</span></div><div class="tw"><table class="mt"><colgroup><col style="width:5%"><col style="width:19%"><col style="width:10%"><col style="width:10%"><col style="width:10%"><col style="width:8%"><col><col class="${off.trim()}" style="width:16%"></colgroup>
+  <tr><th rowspan="2" class="hb">No</th><th rowspan="2" class="hb">Jenis Alat</th><th colspan="2">SERVICE TERAKHIR</th><th rowspan="2" class="hb">S/D HARI INI</th><th rowspan="2" class="hb">TOTAL<br>HM</th><th class="nb">KETERANGAN SERVICE TERAKHIR</th><th rowspan="2" class="hb kc${off}">Kondisi Saat ini</th></tr>
+  <tr><th class="hb">TGL</th><th class="hb">HM</th><th class="hb">${E(std)}</th></tr>
+  ${rows.map((s,j)=>{const m=MS[s.mesin_id],hm=m.hm!=null?+m.hm:null,base=s.hm_service_terakhir!=null&&s.hm_service_terakhir!==''?+s.hm_service_terakhir:null,tot=hm!=null&&base!=null?hm-base:null,lim=s.standar_min_hm||s.standar_hm;
+   return `<tr><td>${j+1}</td><td class="nm">${E(String(m.nama).toUpperCase())}</td><td>${dt(s.tgl_service_terakhir)}</td><td>${nz(base,dec)}</td><td>${nz(hm,dec)}</td><td class="${tot!=null&&lim&&tot>=lim?'rd':''}">${nz(tot)}</td><td class="k">${E(s.keterangan)}${admin?` <button class="btn sm noprint" data-id="${E(s.id)}">Catat servis</button>`:''}</td><td class="k kc${off}${admin?' ed':''}" data-kd="${E(s.id)}">${E(s.kondisi)}</td></tr>`}).join('')}</table></div></div>`}).join('')||'<p>Belum ada data sparepart.</p>';
+ document.querySelectorAll('button[data-id]').forEach(b=>b.onclick=()=>servis(b.dataset.id));
+ if(admin)document.querySelectorAll('td[data-kd]').forEach(td=>td.onclick=async()=>{const sp=SP.find(x=>x.id===td.dataset.kd),v=prompt('Kondisi saat ini:',sp.kondisi||'');if(v===null)return;try{await F.updateDoc(F.doc(db,'sparepart_standar',sp.id),{kondisi:v.trim()});sp.kondisi=v.trim();draw()}catch(e){alert('Gagal menyimpan: '+(e.message||e))}})}
 async function servis(id){const s=SP.find(x=>x.id===id),m=MS[s.mesin_id];if(m.hm==null){alert('HM mesin belum ada. Isi dulu lewat Input HM.');return}
  const t=prompt('Tanggal servis (YYYY-MM-DD) untuk '+m.nama+', '+s.komponen+':',new Date().toISOString().slice(0,10));if(!t)return;
  if(!/^\d{4}-\d{2}-\d{2}$/.test(t)){alert('Format tanggal salah.');return}
