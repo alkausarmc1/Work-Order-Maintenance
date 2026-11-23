@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="config.js"></script>
+<title>Impor HM dari Excel 2026</title>
+<style>
+:root{--bg:#eef1f4;--ink:#14202b;--mut:#51606d;--line:#c9d2da;--ac:#2f5d8a;--r:#b3261e;--g:#2a7048}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,sans-serif}
+main{max-width:820px;margin:0 auto;padding:14px 12px 40px}h1{font-size:26px;margin:4px 0 8px}a{color:var(--ac)}
+.card{background:#fff;border:1px solid var(--line);border-radius:4px;padding:11px 12px;margin:10px 0}
+input,select{font:inherit;padding:8px;border:1px solid var(--line);border-radius:4px;max-width:100%}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left}
+.btn{border:0;cursor:pointer;background:var(--ac);color:#fff;font-weight:700;font-size:16px;padding:11px 18px;border-radius:4px}.btn[disabled]{opacity:.5}
+.ok{color:var(--g)}.bad{color:var(--r)}.sub{color:var(--mut);font-size:14px}pre{white-space:pre-wrap;font-size:13px}
+</style></head><body><main id="app"><p class="sub">Memuat...</p></main>
+<script type="module">
+const FBU='https://www.gstatic.com/firebasejs/10.14.1/',$=s=>document.querySelector(s),app=$('#app');
+const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+let C={};try{C=JSON.parse(localStorage.getItem('jmcfg')||'{}')}catch(e){}
+let F,db,DB=[],SP=[],D=null,map={},plan=[];
+function login(U,au){return new Promise(res=>{app.innerHTML='<form class="card" id="lg"><b>Masuk sebagai admin</b><p><input id="e" type="email" placeholder="Email" autocomplete="username"></p><p><input id="p" type="password" placeholder="Password" autocomplete="current-password"></p><button class="btn">Masuk</button><p id="m" class="bad"></p></form>';
+ $('#lg').onsubmit=async ev=>{ev.preventDefault();try{await U.signInWithEmailAndPassword(au,$('#e').value.trim(),$('#p').value)}catch(x){$('#m').textContent='Email atau password salah.'}}})}
+async function init(){
+ if(!C.firebase||!C.firebase.apiKey)throw new Error('Firebase belum tersambung di perangkat ini. Buka sambungkan.html dulu.');
+ const[A,Fs,U]=await Promise.all([import(FBU+'firebase-app.js'),import(FBU+'firebase-firestore.js'),import(FBU+'firebase-auth.js')]);
+ F=Fs;const ap=A.initializeApp(C.firebase);db=F.getFirestore(ap);const au=U.getAuth(ap);
+ await new Promise(res=>U.onAuthStateChanged(au,u=>u?res():login(U,au)));
+ const me=await F.getDoc(F.doc(db,'users',au.currentUser.uid));
+ if(!me.exists()||me.data().role!=='admin')throw new Error('Halaman ini hanya untuk admin.');
+ const all=async c=>(await F.getDocs(F.collection(db,c))).docs.map(d=>({id:d.id,...d.data()}));
+ [DB,SP]=await Promise.all([all('mesin'),all('sparepart_standar')]);
+ app.innerHTML=`<a href="menu.html">Menu</a><h1>Impor HM dari Excel 2026</h1><div class="card"><b>1. Pilih file hm_2026_data.json</b><p><input type="file" id="fl" accept=".json"></p><p class="sub">${DB.length} mesin dan ${SP.length} sparepart terbaca dari database.</p></div><div id="st"></div>`;
+ $('#fl').onchange=async e=>{D=JSON.parse(await e.target.files[0].text());match();show()}}
+function match(){const R=(p,s)=>new RegExp(p,'i').test(s),test=(m,x)=>{const nm=String(x.nama||'').toUpperCase();return m.pat.every(p=>R(p,nm))&&!m.not.some(p=>R(p,nm))&&(!m.any||m.any.some(p=>R(p,nm))||(m.ar&&R(m.ar,String(x.area||''))))};
+ D.mesin.forEach(m=>{const c=DB.filter(x=>test(m,x));map[m.k]=c.length===1?c[0].id:''})}
+const sel=()=>D.mesin.filter(m=>map[m.k]);
+function show(){const opt=s=>'<option value="">- lewati -</option>'+[...DB].sort((a,b)=>String(a.nama).localeCompare(String(b.nama),'id',{numeric:true})).map(m=>`<option value="${E(m.id)}"${m.id===s?' selected':''}>${E(m.nama)} (${E(m.id)})</option>`).join('');
+ $('#st').innerHTML=`<div class="card"><b>2. Cocokkan mesin</b><p class="sub">Yang cocok otomatis sudah terpilih. Untuk yang kosong, pilih manual atau biarkan dilewati.</p><table><tr><th>Excel</th><th>Database</th><th>HM Excel terakhir</th></tr>${D.mesin.map(m=>`<tr><td>${E(m.nama)}</td><td><select data-k="${m.k}">${opt(map[m.k])}</select></td><td>${m.hm} (${m.hm_tgl})</td></tr>`).join('')}</table></div>
+ <div class="card"><b>3. Pilihan impor</b><p>HM harian dari <input type="date" id="dr" value="2026-11-01"> sampai <input type="date" id="ds" value="2026-11-22"> ke koleksi <select id="tg"><option value="hm_log">hm_log (aktif, ikut memperbarui HM mesin)</option><option value="hm_arsip">hm_arsip (arsip saja)</option></select></p>
+ <p><label><input type="checkbox" id="sp" checked> Perbarui servis terakhir sparepart (tanggal, HM, keterangan, riwayat penggantian)</label></p>
+ <p><label><input type="checkbox" id="op"> Sertakan Bush Press dan Worm Lengthening Shaft (tidak dipantau di PDF)</label></p><div id="est" class="sub"></div><button class="btn" id="go">Impor ke database</button><pre id="lg"></pre></div>`;
+ document.querySelectorAll('select[data-k]').forEach(s=>s.onchange=()=>{map[s.dataset.k]=s.value;est()});['#dr','#ds','#tg','#sp','#op'].forEach(i=>$(i).onchange=est);$('#go').onclick=run;est()}
+function build(){const a=$('#dr').value,b=$('#ds').value,tg=$('#tg').value,ops=[],rep=[],byId=Object.fromEntries(DB.map(m=>[m.id,m]));
+ sel().forEach(m=>{const id=map[m.k],dm=byId[id],ofs=dm.hm_offset||0;let last=null;
+  Object.keys(m.seri).sort().filter(d=>d>=a&&d<=b).forEach(d=>{last=d;const hm=m.seri[d];
+   ops.push(w=>w.set(F.doc(db,tg,id+'_'+d),tg==='hm_log'?{mesin_id:id,tanggal:d,hm,hm_alat:Math.round((hm-ofs)*10)/10,hm_offset:ofs,dicatat_oleh:'Impor Excel',catatan:'Impor Excel 2026',dibuat:F.serverTimestamp()}:{mesin_id:id,tanggal:d,hm,catatan:'Impor Excel 2026'}))});
+  if(tg==='hm_log'&&last&&(!dm.hm_tgl||last>=dm.hm_tgl))ops.push(w=>w.update(F.doc(db,'mesin',id),{hm:m.seri[last],hm_tgl:last,hm_sementara:F.deleteField()}))});
+ let nu=0,ns=0,nx=0;
+ if($('#sp').checked)D.komponen.filter(k=>map[k.mk]&&(!k.opt||$('#op').checked)).forEach(k=>{const c=SP.filter(s=>s.mesin_id===map[k.mk]),h=c.filter(s=>new RegExp(k.kre,'i').test(s.komponen)),s=h.length===1?h[0]:(c.length===1&&k.kre==='.'?c[0]:null);
+  if(!s){nx++;rep.push('Tidak ditemukan: '+map[k.mk]+' bagian '+k.sec);return}
+  const ref=F.doc(db,'sparepart_standar',s.id);
+  if(k.tgl&&(!s.tgl_service_terakhir||k.tgl>s.tgl_service_terakhir)){nu++;const prev=+s.hm_service_terakhir||0;
+   ops.push(w=>w.update(ref,{tgl_service_terakhir:k.tgl,hm_service_terakhir:k.hm_servis,...(k.ket?{keterangan:k.ket}:{})}));
+   ops.push(w=>w.set(F.doc(db,'penggantian',s.id+'_'+k.tgl),{mesin_id:s.mesin_id,komponen:s.komponen,tanggal:k.tgl,hm:k.hm_servis,hm_sebelumnya:prev||null,ketahanan_hm:prev?Math.round((k.hm_servis-prev)*10)/10:null,alasan:k.ket||'Impor Excel 2026'}))}
+  else if(k.ket&&!s.keterangan){ns++;ops.push(w=>w.update(ref,{keterangan:k.ket}))}
+  else ns++});
+ return{ops,rep,nu,ns,nx}}
+function est(){const r=build();$('#est').innerHTML=`${sel().length} mesin dipilih. ${r.ops.length} operasi tulis. Sparepart: ${r.nu} servis lebih baru diperbarui, ${r.ns} dilewati (database sudah sama atau lebih baru), ${r.nx} tidak ditemukan.${r.rep.length?'<br>'+r.rep.slice(0,8).map(E).join('<br>')+(r.rep.length>8?'<br>...':''):''}<br>Catatan harian dengan ID yang sama akan ditimpa. Kuota gratis Firestore 20.000 tulis per hari.`}
+async function run(){const r=build();if(!confirm('Tulis '+r.ops.length+' operasi ke database sekarang?'))return;$('#go').disabled=true;const L=$('#lg');
+ try{for(let i=0;i<r.ops.length;i+=400){const w=F.writeBatch(db);r.ops.slice(i,i+400).forEach(o=>o(w));await w.commit();L.textContent='Tertulis '+Math.min(i+400,r.ops.length)+' dari '+r.ops.length+'...'}
+  L.innerHTML='<span class="ok">Selesai. Buka <a href="rekap_mingguan.html">Rekap mingguan</a>.</span>'}
+ catch(e){L.innerHTML='<span class="bad">Gagal: '+E(e.message||e)+'</span>';$('#go').disabled=false}}
+init().catch(e=>{app.innerHTML='<h1>Impor HM</h1><p class="bad">'+E(e.message||e)+'</p>'});
+</script></body></html>

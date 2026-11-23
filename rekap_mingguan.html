@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="config.js"></script>
+<title>Weekly Hour Meter Monitoring</title>
+<style>
+:root{--ink:#14202b;--line:#222;--ac:#2f5d8a}
+*{box-sizing:border-box}body{margin:0;background:#eef1f4;color:var(--ink);font:13px/1.3 Arial,Helvetica,sans-serif}
+main{max-width:900px;margin:0 auto;padding:12px;background:#fff}
+.tb{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap}
+.btn{border:0;cursor:pointer;background:var(--ac);color:#fff;font-weight:700;font-size:14px;padding:9px 14px;border-radius:4px}
+.sm{background:none;color:var(--ac);border:1px solid var(--ac);padding:2px 6px;font-size:11px;font-weight:400;margin-left:4px}
+h1{font-size:15px;text-align:center;margin:6px 0 0}h1+p{text-align:center;font-weight:700;margin:0 0 10px}
+.sec{break-inside:avoid;margin-bottom:14px}.sh{display:flex;justify-content:space-between;font-weight:700;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid var(--line);padding:2px 4px}
+th{background:#f3f3f3;text-align:center}td.n{text-align:right;font-variant-numeric:tabular-nums}td.c{text-align:center}
+.red{background:#f4b6b6;font-weight:700}.sub{color:#51606d}
+@media print{@page{size:A4;margin:10mm}body{background:#fff;font-size:10px}main{max-width:none;padding:0}.noprint{display:none!important}table{font-size:9px}}
+</style></head><body><main id="app"><p>Memuat...</p></main>
+<script type="module">
+const FBU='https://www.gstatic.com/firebasejs/10.14.1/',$=s=>document.querySelector(s),app=$('#app');
+const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let C={};try{C=JSON.parse(localStorage.getItem('jmcfg')||'{}')}catch(e){}
+// urutan bagian mengikuti PDF; komponen lain di luar daftar ditaruh di akhir
+const ORDER=['SCREW PRESS','PRESS CAGE PRESS','CONNECTOR','BUSH','TIE ROD','LENGTHEN','LONG','EXPELLER','ROTOR','STATOR','SCREW EMPTY','PRESS CAGE EMPTY','TURBIN','GENSET','DECANTER','VIBRATING SCREEN PRESS','CLAYBATH','VIBRATING SCREEN EB'];
+const rank=k=>{const i=ORDER.findIndex(o=>k.includes(o));return i<0?99:i};
+let F,db,MS={},SP=[],admin=false;
+const nf=(x,d=0)=>x==null||x===''||isNaN(x)?'-':(+x).toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});
+const dt=s=>s?String(s).split('-').reverse().join('/'):'';
+const pad=n=>String(n).padStart(2,'0');
+function login(U,au){return new Promise(res=>{app.innerHTML='<form id="lg"><b>Masuk</b><p><input id="e" type="email" placeholder="Email" autocomplete="username"> <input id="p" type="password" placeholder="Password" autocomplete="current-password"> <button class="btn">Masuk</button></p><p id="m"></p></form>';
+ $('#lg').onsubmit=async ev=>{ev.preventDefault();try{await U.signInWithEmailAndPassword(au,$('#e').value.trim(),$('#p').value)}catch(x){$('#m').textContent='Email atau password salah.'}}})}
+async function init(){
+ if(!C.firebase||!C.firebase.apiKey)throw new Error('Firebase belum tersambung di perangkat ini. Buka sambungkan.html dulu.');
+ const[A,Fs,U]=await Promise.all([import(FBU+'firebase-app.js'),import(FBU+'firebase-firestore.js'),import(FBU+'firebase-auth.js')]);
+ F=Fs;const ap=A.initializeApp(C.firebase);db=F.getFirestore(ap);const au=U.getAuth(ap);
+ await new Promise(res=>U.onAuthStateChanged(au,u=>u?res():login(U,au)));
+ const me=await F.getDoc(F.doc(db,'users',au.currentUser.uid));admin=me.exists()&&me.data().role==='admin';
+ MS={};(await F.getDocs(F.collection(db,'mesin'))).docs.forEach(d=>MS[d.id]={id:d.id,...d.data()});
+ SP=(await F.getDocs(F.collection(db,'sparepart_standar'))).docs.map(d=>({id:d.id,...d.data()}));draw()}
+function draw(){const n=new Date(),stamp=`${pad(n.getDate())}/${pad(n.getMonth()+1)}/${n.getFullYear()} ${pad(n.getHours())}:${pad(n.getMinutes())}`;
+ const bln=n.toLocaleDateString('id-ID',{month:'long',year:'numeric'}).toUpperCase(),mg=Math.min(4,Math.ceil(n.getDate()/7));
+ const G={};SP.filter(s=>MS[s.mesin_id]).forEach(s=>(G[String(s.komponen).toUpperCase()]=G[String(s.komponen).toUpperCase()]||[]).push(s));
+ const keys=Object.keys(G).sort((a,b)=>rank(a)-rank(b)||a.localeCompare(b));
+ app.innerHTML=`<div class="tb noprint"><a href="menu.html">Menu</a><span class="sub">Minggu ${mg} ${bln}. "S/D hari ini" = HM terakhir dari Input HM.</span><button class="btn" onclick="print()">Cetak / Simpan PDF</button></div>
+ <h1>PT. KHARISMA ALAM PERSADA MILL</h1><p>WEEKLY HOUR METER MONITORING</p>`+keys.map((k,i)=>{
+  const rows=G[k].sort((a,b)=>String(MS[a.mesin_id].nama).localeCompare(String(MS[b.mesin_id].nama),'id',{numeric:true})),f=rows[0],dec=/ROTOR|STATOR/.test(k)?2:0;
+  const std=f.standar_hm?`(${f.standar_min_hm?f.standar_min_hm+' - ':''}${f.standar_hm} HM)`:'';
+  return `<div class="sec"><div class="sh"><span>${i+1}. ${E(k)}</span><span>${stamp}</span></div><table><colgroup><col width="4%"><col width="22%"><col width="11%"><col width="11%"><col width="11%"><col width="9%"><col></colgroup>
+  <tr><th rowspan="2">No</th><th rowspan="2">Jenis Alat</th><th colspan="2">SERVICE TERAKHIR</th><th rowspan="2">S/D HARI INI</th><th rowspan="2">TOTAL HM</th><th rowspan="2">KETERANGAN SERVICE TERAKHIR<br>${E(std)}</th></tr><tr><th>TGL</th><th>HM</th></tr>
+  ${rows.map((s,j)=>{const m=MS[s.mesin_id],hm=m.hm!=null?+m.hm:null,tot=hm!=null&&s.hm_service_terakhir!=null?hm-s.hm_service_terakhir:null,lim=s.standar_min_hm||s.standar_hm;
+   return `<tr><td class="c">${j+1}</td><td class="c">${E(String(m.nama).toUpperCase())}</td><td class="c">${dt(s.tgl_service_terakhir)}</td><td class="n">${s.tgl_service_terakhir?nf(s.hm_service_terakhir,dec):''}</td><td class="n">${nf(hm,dec)}</td><td class="n${tot!=null&&lim&&tot>=lim?' red':''}">${nf(tot,dec)}</td><td>${E(s.keterangan)}${admin?` <button class="btn sm noprint" data-id="${E(s.id)}">Catat servis</button>`:''}</td></tr>`}).join('')}</table></div>`}).join('')||'<p>Belum ada data sparepart.</p>';
+ document.querySelectorAll('button[data-id]').forEach(b=>b.onclick=()=>servis(b.dataset.id))}
+async function servis(id){const s=SP.find(x=>x.id===id),m=MS[s.mesin_id];if(m.hm==null){alert('HM mesin belum ada. Isi dulu lewat Input HM.');return}
+ const t=prompt('Tanggal servis (YYYY-MM-DD) untuk '+m.nama+', '+s.komponen+':',new Date().toISOString().slice(0,10));if(!t)return;
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(t)){alert('Format tanggal salah.');return}
+ const ket=prompt('Keterangan servis:',s.keterangan||'');if(ket===null)return;
+ const prev=+s.hm_service_terakhir||0,hm=+m.hm;
+ try{await F.updateDoc(F.doc(db,'sparepart_standar',id),{tgl_service_terakhir:t,hm_service_terakhir:hm,keterangan:ket});
+  await F.setDoc(F.doc(db,'penggantian',id+'_'+t),{mesin_id:s.mesin_id,komponen:s.komponen,tanggal:t,hm,hm_sebelumnya:prev||null,ketahanan_hm:prev?Math.round((hm-prev)*10)/10:null,alasan:ket});
+  Object.assign(s,{tgl_service_terakhir:t,hm_service_terakhir:hm,keterangan:ket});draw()}catch(e){alert('Gagal menyimpan: '+(e.message||e))}}
+init().catch(e=>{app.innerHTML='<p style="color:#b3261e">'+E(e.message||e)+'</p>'});
+</script></body></html>
