@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="config.js"></script>
 <title>Impor Data</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;700&display=swap">
 <style>
@@ -37,7 +38,7 @@ function rows(wb,n){return wb.Sheets[n]?XLSX.utils.sheet_to_json(wb.Sheets[n],{r
 function login(U,au){return new Promise(res=>{$('#st').innerHTML='<form class="card" id="lg"><b>Masuk sebagai admin</b><label>Email<input id="e" type="email" autocomplete="username"></label><label>Password<input id="p" type="password" autocomplete="current-password"></label><button class="btn">Masuk</button><p id="m" class="sub"></p></form>';
  $('#lg').onsubmit=async ev=>{ev.preventDefault();try{await U.signInWithEmailAndPassword(au,$('#e').value.trim(),$('#p').value)}catch(x){$('#m').textContent='Email atau password salah.'}}})}
 async function main(){
- if(!C.firebase||!C.firebase.apiKey){$('#st').innerHTML='<div class="note">Firebase belum tersambung. Buka halaman rekap, isi Sambungan, lalu buka halaman ini lagi.</div>';return}
+ if(!C.firebase||!C.firebase.apiKey){$('#st').innerHTML='<div class="note">Firebase belum tersambung di perangkat ini. <a href="sambungkan.html">Sambungkan perangkat ini</a>.</div>';return}
  const[A,F,U]=await Promise.all([import(FBU+'firebase-app.js'),import(FBU+'firebase-firestore.js'),import(FBU+'firebase-auth.js')]);
  const ap=A.initializeApp(C.firebase),db=F.getFirestore(ap),au=U.getAuth(ap);
  await new Promise(res=>U.onAuthStateChanged(au,u=>{if(u)res();else login(U,au)}));

@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="config.js"></script>
 <title>Input HM Mesin</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;700&display=swap">
 <style>
@@ -39,7 +40,7 @@ function login(U,au){return new Promise(res=>{app.innerHTML='<form class="card" 
  $('#lg').onsubmit=async ev=>{ev.preventDefault();try{await U.signInWithEmailAndPassword(au,$('#e').value.trim(),$('#p').value)}catch(x){$('#m').textContent='Email atau password salah.'}}})}
 async function connect(){
  if(window.__DBMOCK)return window.__DBMOCK;
- if(!C.firebase||!C.firebase.apiKey)throw new Error('Firebase belum tersambung. Buka halaman rekap, isi Sambungan, lalu buka halaman ini lagi.');
+ if(!C.firebase||!C.firebase.apiKey)throw new Error('Firebase belum tersambung di perangkat ini.');
  const[A,F,U]=await Promise.all([import(FBU+'firebase-app.js'),import(FBU+'firebase-firestore.js'),import(FBU+'firebase-auth.js')]);
  const ap=A.initializeApp(C.firebase),db=F.getFirestore(ap),au=U.getAuth(ap);
  await new Promise(res=>U.onAuthStateChanged(au,u=>u?res():login(U,au)));
@@ -101,5 +102,5 @@ async function simpan(){const tgl=$('#tg').value,oleh=$('#nm').value.trim(),jmv=
  catch(e){app.insertAdjacentHTML('afterbegin','<div class="note bad">Gagal menyimpan: '+E(e.message||e)+'</div>');$('#sv').disabled=false}}
 $('#sv').onclick=simpan;
 connect().then(async a=>{API=a;if(a.role!=='admin'){app.innerHTML='<h1>Input HM mesin</h1><div class="note bad">Halaman ini hanya untuk admin. Akun yang dipakai belum terdaftar sebagai admin.</div><a href="menu.html">Kembali ke menu</a>';return}
- M=(await a.load()).filter(m=>m.area!=='KENDARAAN'&&!/^MS-KN-/.test(m.id));draw()}).catch(e=>{app.innerHTML='<h1>Input HM mesin</h1><div class="note bad">'+E(e.message||e)+'</div>'});
+ M=(await a.load()).filter(m=>m.area!=='KENDARAAN'&&!/^MS-KN-/.test(m.id));draw()}).catch(e=>{app.innerHTML='<h1>Input HM mesin</h1><div class="note bad">'+E(e.message||e)+(/belum tersambung/.test(e.message||'')?'<br><a href="sambungkan.html">Sambungkan perangkat ini</a>':'')+'</div>'});
 </script></body></html>

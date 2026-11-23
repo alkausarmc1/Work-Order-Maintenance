@@ -22,10 +22,15 @@ if(!f||!f.apiKey){$('#app').innerHTML='<div class="note">Perangkat ini belum men
 else{
  const text='const firebaseConfig = '+JSON.stringify(f,null,2)+';';
  const b64=btoa(unescape(encodeURIComponent(JSON.stringify(f)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
- const link=new URL('selamatkan.html',location.href).href.split('#')[0]+'#c='+b64;
- $('#app').innerHTML='<div class="card"><b>Tautan untuk teman</b><p class="sub">Kirim tautan ini lewat WhatsApp. Temanmu membukanya di perangkatnya, lalu tinggal menekan Simpan sambungan.</p><button class="btn" id="cl">Salin tautan</button><div class="ok" id="m1"></div></div><div class="card"><b>Konfigurasi (teks)</b><textarea id="tx" rows="9" readonly></textarea><button class="btn s" id="ct">Salin konfigurasi</button><div class="ok" id="m2"></div></div><div class="note">Ini bukan kata sandi, tapi kirim hanya ke orang yang memang perlu. Temanmu tetap harus login dengan akunnya sendiri.</div>';
+ const link=new URL('sambungkan.html',location.href).href.split('#')[0]+'#c='+b64;
+ $('#app').innerHTML='<div class="card"><b>Tautan untuk teman</b><p class="sub">Kirim tautan ini lewat WhatsApp. Buka tautan itu di komputer atau HP yang mau disambungkan, lalu tekan Sambungkan perangkat ini.</p><button class="btn" id="cl">Salin tautan</button><div class="ok" id="m1"></div></div><div class="card"><b>Konfigurasi (teks)</b><textarea id="tx" rows="9" readonly></textarea><button class="btn s" id="ct">Salin konfigurasi</button><div class="ok" id="m2"></div></div><div class="note">Ini bukan kata sandi, tapi kirim hanya ke orang yang memang perlu. Temanmu tetap harus login dengan akunnya sendiri.</div>';
  $('#tx').value=text;
  const cp=async(t,el,msg)=>{try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}$(el).textContent=msg};
  $('#cl').onclick=()=>cp(link,'#m1','Tautan tersalin. Tempel di WhatsApp.');$('#ct').onclick=()=>cp(text,'#m2','Teks tersalin.');
+ const js="// Konfigurasi Firebase sekali untuk semua halaman. Bukan kata sandi; keamanan data diatur oleh aturan Firestore dan login.\n(function(){var f="+JSON.stringify(f)+";try{var c=JSON.parse(localStorage.getItem('jmcfg')||'{}');if(!c.firebase||!c.firebase.apiKey){c.firebase=f;c.url=c.url||'';c.key=c.key||'';localStorage.setItem('jmcfg',JSON.stringify(c))}}catch(e){}})();\n";
+ const box=document.createElement('div');box.className='card';box.innerHTML='<b>Sambungan otomatis untuk semua perangkat</b><p class="sub">Unduh file <b>config.js</b>, lalu upload ke repo GitHub di folder yang sama dengan index.html. Setelah itu perangkat mana pun yang membuka situs langsung tersambung, tanpa tautan atau tempel konfigurasi. Tinggal login.</p><button class="btn" id="dj">Unduh config.js</button><div class="ok" id="m3"></div>';
+ document.querySelector('.note').before(box);
+ $('#dj').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([js],{type:'text/javascript'}));a.download='config.js';document.body.appendChild(a);a.click();a.remove();$('#m3').textContent='config.js terunduh. Upload ke GitHub.'};
+ window.__JS=js;
  window.__LINK=link}
 </script></body></html>
