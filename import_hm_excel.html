@@ -17,7 +17,8 @@ const FBU='https://www.gstatic.com/firebasejs/10.14.1/',$=s=>document.querySelec
 const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const slug=s=>String(s).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 let C={};try{C=JSON.parse(localStorage.getItem('jmcfg')||'{}')}catch(e){}
-let F,db,DB=[],SP=[],D=null,map={},plan=[];
+let F,db,DB=[],SP=[],D=null,map={},MT={};
+const r2=x=>Math.round(x*100)/100;
 function login(U,au){return new Promise(res=>{app.innerHTML='<form class="card" id="lg"><b>Masuk sebagai admin</b><p><input id="e" type="email" placeholder="Email" autocomplete="username"></p><p><input id="p" type="password" placeholder="Password" autocomplete="current-password"></p><button class="btn">Masuk</button><p id="m" class="bad"></p></form>';
  $('#lg').onsubmit=async ev=>{ev.preventDefault();try{await U.signInWithEmailAndPassword(au,$('#e').value.trim(),$('#p').value)}catch(x){$('#m').textContent='Email atau password salah.'}}})}
 async function init(){
@@ -32,19 +33,21 @@ async function init(){
  app.innerHTML=`<a href="menu.html">Menu</a><h1>Impor HM dari Excel 2026</h1><div class="card"><b>1. Pilih file hm_2026_data.json</b><p><input type="file" id="fl" accept=".json"></p><p class="sub">${DB.length} mesin dan ${SP.length} sparepart terbaca dari database.</p></div><div id="st"></div>`;
  $('#fl').onchange=async e=>{D=JSON.parse(await e.target.files[0].text());match();show()}}
 function match(){const R=(p,s)=>new RegExp(p,'i').test(s),test=(m,x)=>{const nm=String(x.nama||'').toUpperCase();return m.pat.every(p=>R(p,nm))&&!m.not.some(p=>R(p,nm))&&(!m.any||m.any.some(p=>R(p,nm))||(m.ar&&R(m.ar,String(x.area||''))))};
- D.mesin.forEach(m=>{const c=DB.filter(x=>test(m,x));map[m.k]=c.length===1?c[0].id:''})}
+ D.mesin.forEach(m=>{const c=DB.filter(x=>test(m,x));map[m.k]=c.length===1?c[0].id:'';if(m.meter)MT[m.k]={a:String(m.meter.a),t:m.meter.t}})}
 const sel=()=>D.mesin.filter(m=>map[m.k]);
 function show(){const opt=s=>'<option value="">- lewati -</option>'+[...DB].sort((a,b)=>String(a.nama).localeCompare(String(b.nama),'id',{numeric:true})).map(m=>`<option value="${E(m.id)}"${m.id===s?' selected':''}>${E(m.nama)} (${E(m.id)})</option>`).join('');
- $('#st').innerHTML=`<div class="card"><b>2. Cocokkan mesin</b><p class="sub">Yang cocok otomatis sudah terpilih. Untuk yang kosong, pilih manual atau biarkan dilewati.</p><table><tr><th>Excel</th><th>Database</th><th>HM Excel terakhir</th></tr>${D.mesin.map(m=>`<tr><td>${E(m.nama)}</td><td><select data-k="${m.k}">${opt(map[m.k])}</select></td><td>${m.hm} (${m.hm_tgl})</td></tr>`).join('')}</table></div>
+ $('#st').innerHTML=`<div class="card"><b>2. Cocokkan mesin</b><p class="sub">Yang cocok otomatis sudah terpilih. Untuk yang kosong, pilih manual atau biarkan dilewati.</p><table><tr><th>Excel</th><th>Database</th><th>HM Excel terakhir</th><th>Meter diganti? angka alat sekarang</th><th>Tgl ganti</th></tr>${D.mesin.map(m=>`<tr><td>${E(m.nama)}</td><td><select data-k="${m.k}">${opt(map[m.k])}</select></td><td>${m.hm} (${m.hm_tgl})</td><td><input data-a="${m.k}" inputmode="decimal" size="8" placeholder="kosong = tidak" value="${E((MT[m.k]||{}).a||'')}"></td><td><input data-t="${m.k}" type="date" value="${(MT[m.k]||{}).t||''}"></td></tr>`).join('')}</table></div>
  <div class="card"><b>3. Pilihan impor</b><p>HM harian dari <input type="date" id="dr" value="2026-11-01"> sampai <input type="date" id="ds" value="2026-11-22"> ke koleksi <select id="tg"><option value="hm_log">hm_log (aktif, ikut memperbarui HM mesin)</option><option value="hm_arsip">hm_arsip (arsip saja)</option></select></p>
  <p><label><input type="checkbox" id="sp" checked> Perbarui servis terakhir sparepart (tanggal, HM, keterangan, riwayat penggantian)</label></p>
  <p><label><input type="checkbox" id="op"> Sertakan Bush Press dan Worm Lengthening Shaft (tidak dipantau di PDF)</label></p><div id="est" class="sub"></div><button class="btn" id="go">Impor ke database</button><pre id="lg"></pre></div>`;
+ document.querySelectorAll('input[data-a],input[data-t]').forEach(i=>i.oninput=i.onchange=()=>{const k=i.dataset.a||i.dataset.t;MT[k]=MT[k]||{};MT[k][i.dataset.a?'a':'t']=i.value.replace(',','.');est()});
  document.querySelectorAll('select[data-k]').forEach(s=>s.onchange=()=>{map[s.dataset.k]=s.value;est()});['#dr','#ds','#tg','#sp','#op'].forEach(i=>$(i).onchange=est);$('#go').onclick=run;est()}
 function build(){const a=$('#dr').value,b=$('#ds').value,tg=$('#tg').value,ops=[],rep=[],byId=Object.fromEntries(DB.map(m=>[m.id,m]));
- sel().forEach(m=>{const id=map[m.k],dm=byId[id],ofs=dm.hm_offset||0;let last=null;
-  Object.keys(m.seri).sort().filter(d=>d>=a&&d<=b).forEach(d=>{last=d;const hm=m.seri[d];
-   ops.push(w=>w.set(F.doc(db,tg,id+'_'+d),tg==='hm_log'?{mesin_id:id,tanggal:d,hm,hm_alat:Math.round((hm-ofs)*10)/10,hm_offset:ofs,dicatat_oleh:'Impor Excel',catatan:'Impor Excel 2026',dibuat:F.serverTimestamp()}:{mesin_id:id,tanggal:d,hm,catatan:'Impor Excel 2026'}))});
-  if(tg==='hm_log'&&last&&(!dm.hm_tgl||last>=dm.hm_tgl))ops.push(w=>w.update(F.doc(db,'mesin',id),{hm:m.seri[last],hm_tgl:last,hm_sementara:F.deleteField()}))});
+ sel().forEach(m=>{const id=map[m.k],dm=byId[id],old=dm.hm_offset||0,t=MT[m.k]||{},ds=Object.keys(m.seri).sort().filter(d=>d>=a&&d<=b);let last=null,nw=null;
+  if(tg==='hm_log'&&t.a!==undefined&&t.a!==''){const A=parseFloat(t.a);if(isNaN(A)||!t.t||!ds.length)rep.push('Lewati setelan meter '+m.nama+': isi angka alat dan tanggal ganti dalam rentang impor.');else if(m.seri[ds[ds.length-1]]-A<0)rep.push('Lewati setelan meter '+m.nama+': angka alat lebih besar dari HM data.');else{nw=r2(m.seri[ds[ds.length-1]]-A);rep.push('Meter diganti '+m.nama+': offset baru '+nw+' mulai '+t.t+(m.seri[t.t]!==undefined&&m.seri[t.t]-nw<0?'. PERIKSA: pada tanggal ganti angka alat jadi negatif ('+r2(m.seri[t.t]-nw)+'), angka alat atau tanggal mungkin keliru':''))}}
+  ds.forEach(d=>{last=d;const hm=m.seri[d],ofs=nw!==null&&d>=t.t?nw:old,rs=nw!==null&&d===t.t;
+   ops.push(w=>w.set(F.doc(db,tg,id+'_'+d),tg==='hm_log'?{mesin_id:id,tanggal:d,hm,hm_alat:r2(hm-ofs),hm_offset:ofs,dicatat_oleh:'Impor Excel',catatan:rs?'Meter diganti':'Impor Excel 2026',...(rs?{reset_meter:true}:{}),dibuat:F.serverTimestamp()}:{mesin_id:id,tanggal:d,hm,catatan:'Impor Excel 2026'}))});
+  if(tg==='hm_log'&&last&&(!dm.hm_tgl||last>=dm.hm_tgl))ops.push(w=>w.update(F.doc(db,'mesin',id),{hm:m.seri[last],hm_tgl:last,hm_sementara:F.deleteField(),...(nw!==null?{hm_offset:nw}:{})}))});
  let nu=0,ns=0,nx=0;
  if($('#sp').checked)D.komponen.filter(k=>map[k.mk]&&(!k.opt||$('#op').checked)).forEach(k=>{const c=SP.filter(s=>s.mesin_id===map[k.mk]),h=c.filter(s=>new RegExp(k.kre,'i').test(s.komponen)),s=h.length===1?h[0]:(c.length===1&&k.kre==='.'?c[0]:null);
   if(!s){nx++;rep.push('Tidak ditemukan: '+map[k.mk]+' bagian '+k.sec);return}
@@ -55,7 +58,7 @@ function build(){const a=$('#dr').value,b=$('#ds').value,tg=$('#tg').value,ops=[
   else if(k.ket&&!s.keterangan){ns++;ops.push(w=>w.update(ref,{keterangan:k.ket}))}
   else ns++});
  return{ops,rep,nu,ns,nx}}
-function est(){const r=build();$('#est').innerHTML=`${sel().length} mesin dipilih. ${r.ops.length} operasi tulis. Sparepart: ${r.nu} servis lebih baru diperbarui, ${r.ns} dilewati (database sudah sama atau lebih baru), ${r.nx} tidak ditemukan.${r.rep.length?'<br>'+r.rep.slice(0,8).map(E).join('<br>')+(r.rep.length>8?'<br>...':''):''}<br>Catatan harian dengan ID yang sama akan ditimpa. Kuota gratis Firestore 20.000 tulis per hari.`}
+function est(){const r=build();$('#est').innerHTML=`${sel().length} mesin dipilih. ${r.ops.length} operasi tulis. Sparepart: ${r.nu} servis lebih baru diperbarui, ${r.ns} dilewati (database sudah sama atau lebih baru), ${r.nx} tidak ditemukan.${r.rep.length?'<br>'+r.rep.slice(0,14).map(E).join('<br>')+(r.rep.length>14?'<br>...':''):''}<br>Catatan harian dengan ID yang sama akan ditimpa. Kuota gratis Firestore 20.000 tulis per hari.`}
 async function run(){const r=build();if(!confirm('Tulis '+r.ops.length+' operasi ke database sekarang?'))return;$('#go').disabled=true;const L=$('#lg');
  try{for(let i=0;i<r.ops.length;i+=400){const w=F.writeBatch(db);r.ops.slice(i,i+400).forEach(o=>o(w));await w.commit();L.textContent='Tertulis '+Math.min(i+400,r.ops.length)+' dari '+r.ops.length+'...'}
   L.innerHTML='<span class="ok">Selesai. Buka <a href="rekap_mingguan.html">Rekap mingguan</a>.</span>'}
