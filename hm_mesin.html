@@ -6,7 +6,7 @@
 <style>
 :root{--bg:#eef1f4;--ink:#14202b;--mut:#51606d;--line:#c9d2da;--card:#fff;--ac:#2f5d8a;--r:#b3261e;--y:#a86400;--g:#2a7048}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.4 'Barlow Semi Condensed',system-ui,sans-serif;padding-bottom:84px}
-main{max-width:1400px;margin:0 auto;padding:14px 12px}h1{font-size:28px;line-height:1.1;margin:2px 0 8px;font-weight:700}
+main{max-width:720px;margin:0 auto;padding:14px 12px}h1{font-size:28px;line-height:1.1;margin:2px 0 8px;font-weight:700}
 h2{font-size:18px;margin:20px 0 6px;font-weight:700;padding-bottom:4px;border-bottom:2px solid var(--ink)}
 .sub{color:var(--mut);font-size:15px}.top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}a{color:var(--ac)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:11px 12px}
@@ -21,15 +21,12 @@ input{font:inherit;color:var(--ink);padding:10px;border:1px solid var(--line);bo
 .pill{font-size:12px;border:1px solid var(--y);color:var(--y);border-radius:3px;padding:0 5px;margin-left:6px}
 .rs{grid-column:1/-1;margin-top:2px}.rs input{margin-top:4px;font-size:18px;text-align:left}.l a{font-size:14px}
 .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 12px}
-.bar div{max-width:1400px;margin:0 auto;display:flex;gap:10px;align-items:center}.bar span{flex:1;font-size:15px;color:var(--mut)}
+.bar div{max-width:720px;margin:0 auto;display:flex;gap:10px;align-items:center}.bar span{flex:1;font-size:15px;color:var(--mut)}
 .btn{border:0;cursor:pointer;background:var(--ac);color:#fff;font-weight:700;font-size:18px;font-family:inherit;padding:13px 20px;border-radius:4px}.btn[disabled]{opacity:.5}
 :focus-visible{outline:3px solid #f0a500;outline-offset:2px}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0;max-width:640px}
-.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(420px,100%),1fr));gap:0 32px}
-#lg{max-width:420px;margin:40px auto}
-@media(min-width:900px){.hd{grid-template-columns:1fr 1fr 1fr}}
-.tabs button{font:700 16px inherit;font-family:inherit;padding:11px 4px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:4px;cursor:pointer}
-.tabs button[aria-selected=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:10px 0}
+.tabs button,.seg button{font:700 16px inherit;font-family:inherit;padding:11px 4px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:4px;cursor:pointer}
+.tabs button[aria-selected=true],.seg button[aria-selected=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
 .tw{overflow-x:auto;margin-top:8px}table.t{border-collapse:collapse;width:100%;font-size:14px;background:#fff}
 .t th,.t td{border:1px solid var(--line);padding:4px 6px;text-align:right;white-space:nowrap}.t th{background:#f3f5f7;text-align:center}
 .t td:first-child,.t th:first-child{text-align:left;position:sticky;left:0;background:#fff;z-index:1}.t th:first-child{background:#f3f5f7}
@@ -38,17 +35,41 @@ input{font:inherit;color:var(--ink);padding:10px;border:1px solid var(--line);bo
 .sh{display:flex;justify-content:space-between;font-weight:700;font-size:15px;margin-top:16px}
 @media print{.noprint,.bar{display:none!important}body{background:#fff;padding:0}main{max-width:none;padding:0}.t{font-size:10px}.t td:first-child,.t th:first-child{position:static}.sh{break-after:avoid}.tw{break-inside:avoid;overflow:visible}}
 .note{background:#fff4d6;border:1px solid #e3c56a;border-radius:4px;padding:8px 10px;font-size:15px;margin:10px 0}.ok{background:#e3f1e8;border-color:#8fc3a2}.bad{background:#fbe4e1;border-color:#e0958e}
+
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+select,textarea{font:inherit;color:var(--ink);padding:10px;border:1px solid var(--line);border-radius:4px;background:#fff;width:100%}textarea{min-height:76px;resize:vertical}
+.fm label{margin-top:12px}.fm .btn{width:100%;margin-top:14px}.ck{display:flex!important;gap:8px;align-items:center;color:var(--ink)!important;font-size:16px!important}.ck input{width:22px;height:22px;padding:0}
+.t td.k.nw{white-space:nowrap}
+.rg{display:block}.svg{display:block}
+@media screen and (min-width:900px){
+ main{max-width:1180px;padding:20px 28px}h1{font-size:32px}
+ .bar div{max-width:1180px;padding:0 16px}
+ .tabs{grid-template-columns:repeat(4,1fr);max-width:820px}
+ .hd{grid-template-columns:1fr 1fr 1fr}
+ .rg{display:grid;grid-template-columns:repeat(2,1fr);gap:0 32px}
+ .svg{display:grid;grid-template-columns:minmax(380px,460px) 1fr;gap:28px;align-items:start}.svg .sh:first-child{margin-top:0}
+ table.t{font-size:15px}.t th,.t td{padding:6px 10px}
+ .mt{font-size:14px;min-width:0}
+}
+@media screen and (min-width:1500px){main{max-width:1440px}.bar div{max-width:1440px}.rg{grid-template-columns:repeat(3,1fr)}}
+/* Monitoring mingguan: mengikuti template Excel HM_Weekly_Monitoring */
+.mt0{text-align:center;font:700 16px/1.35 Calibri,Carlito,Arial,sans-serif;margin:14px 0 4px;color:#000}
+.ms{margin-top:16px;break-inside:avoid}
+.mh{display:flex;justify-content:space-between;align-items:baseline;font:700 14px Calibri,Carlito,Arial,sans-serif;color:#000;margin-bottom:2px}.mh span{font-weight:400;font-size:13px}
+.mt{border-collapse:collapse;table-layout:fixed;width:100%;min-width:700px;border:2px solid #000;font:13px Calibri,Carlito,Arial,sans-serif;color:#000;background:#fff}
+.mt th,.mt td{border:1px solid #000;padding:3px 6px;text-align:center;vertical-align:middle;height:27px;font-variant-numeric:tabular-nums}
+.mt th{font-weight:700;background:#fff}.mt .hb{border-bottom:2px solid #000}.mt .nb{border-bottom-style:hidden}
+.mt td.nm{white-space:pre-line}.mt td.k{white-space:normal}.mt td.rd{background:#ffc7ce;color:#9c0006}.mt td.kc{cursor:pointer}
+@media print{@page{size:A4 portrait;margin:10mm}.mt{font-size:9.5px;min-width:0}.mt th,.mt td{padding:1px 3px;height:19px}.mt .off,.mt col.off{display:none}.ms{margin-top:10px}.mt0{font-size:13px}.mh{font-size:11px}.mh span{font-size:10px}}
 </style></head><body><main id="app"><p class="sub">Memuat...</p></main>
 <div class="bar" id="bar" hidden><div><span id="cnt"></span><button class="btn" id="sv">Simpan</button></div></div>
 <script type="module">
 const FBU='https://www.gstatic.com/firebasejs/10.14.1/',$=s=>document.querySelector(s),app=$('#app');
 const E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const N=x=>x==null||x===''||isNaN(x)?'-':String(Math.round(+x*100)/100);
+const N=x=>x==null||x===''||isNaN(x)?'-':(Math.round(+x*10)/10).toFixed(1).replace(/\.0$/,'');
 const D=s=>{if(!s)return'-';const d=new Date(s);return isNaN(d)?E(s):d.toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})};
 const today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
 const d1=v=>{v=String(v).replace(',','.').replace(/[^0-9.]/g,'');const p=v.split('.');return p[0]+(p.length>1?'.'+p.slice(1).join('').slice(0,1):'')};
-const d2=v=>{v=String(v).replace(',','.').replace(/[^0-9.]/g,'');const p=v.split('.');return p[0]+(p.length>1?'.'+p.slice(1).join('').slice(0,2):'')};
-const r2=x=>Math.round(x*100)/100;
 const ORDER=['LOADING RAMP','STERILIZER','THRESHER','EB PRESS','PRESS','KLARIFIKASI','KERNEL','BOILER','WATER TREATMENT','POWER HOUSE','EFFLUENT TREATMENT','OIL DESPATCH'];
 let C={};try{C=JSON.parse(localStorage.getItem('jmcfg')||'{}')}catch(e){}
 function login(U,au){return new Promise(res=>{app.innerHTML='<form class="card" id="lg"><b>Masuk sebagai admin</b><label>Email<input id="e" type="email" autocomplete="username"></label><label>Password<input id="p" type="password" autocomplete="current-password"></label><button class="btn" style="margin-top:10px;width:100%">Masuk</button><p id="m" class="sub"></p></form>';
@@ -64,6 +85,16 @@ async function connect(){
   load:async()=>(await F.getDocs(F.query(F.collection(db,'mesin'),F.where('vital','==',true)))).docs.map(d=>({id:d.id,...d.data()})),
   log:async a=>(await F.getDocs(F.query(F.collection(db,'hm_log'),F.where('tanggal','>=',a)))).docs.map(d=>d.data()),
   sp:async()=>(await F.getDocs(F.collection(db,'sparepart_standar'))).docs.map(d=>({id:d.id,...d.data()})),
+  jam:async a=>(await F.getDocs(F.query(F.collection(db,'jam_olah'),F.where('tanggal','>=',a)))).docs.map(d=>d.data()),
+  svAll:async a=>(await F.getDocs(F.query(F.collection(db,'service_log'),F.where('tanggal','>=',a)))).docs.map(d=>({id:d.id,...d.data()})),
+  svLog:async()=>(await F.getDocs(F.query(F.collection(db,'service_log'),F.orderBy('tanggal','desc'),F.limit(20)))).docs.map(d=>({id:d.id,...d.data()})),
+  saveSvc:async x=>{const b=F.writeBatch(db),id=x.mid+'_'+x.tgl+'_'+Date.now();
+   b.set(F.doc(db,'service_log',id),{mesin_id:x.mid,mesin_nama:x.nama,jenis:x.jenis,komponen:x.komponen||'',sparepart_id:x.sp||'',tanggal:x.tgl,hm:x.hm,hm_alat:x.alat,hm_offset:x.off,keterangan:x.ket,dicatat_oleh:x.oleh,dibuat:F.serverTimestamp()});
+   if(x.sp&&x.updSp)b.update(F.doc(db,'sparepart_standar',x.sp),{hm_service_terakhir:x.hm,tgl_service_terakhir:x.tgl,keterangan:x.ketSp});
+   if(x.updHm){b.set(F.doc(db,'hm_log',x.mid+'_'+x.tgl),{mesin_id:x.mid,tanggal:x.tgl,hm:x.hm,hm_alat:x.alat,hm_offset:x.off,dicatat_oleh:x.oleh,catatan:'Update dari servis',dibuat:F.serverTimestamp()},{merge:true});
+    b.update(F.doc(db,'mesin',x.mid),{hm:x.hm,hm_tgl:x.tgl,hm_sementara:F.deleteField()})}
+   await b.commit()},
+  kond:async(id,t)=>F.updateDoc(F.doc(db,'sparepart_standar',id),{kondisi:t}),
   save:async(rows,tgl,oleh,jam)=>{const ops=[];rows.forEach(r=>{ops.push(b=>b.set(F.doc(db,'hm_log',r.id+'_'+tgl),{mesin_id:r.id,tanggal:tgl,hm:r.hm,hm_alat:r.alat,hm_offset:r.off||0,dicatat_oleh:oleh,catatan:r.reset?'Meter diganti':'',...(r.reset?{reset_meter:true}:{}),dibuat:F.serverTimestamp()}));
    ops.push(b=>b.update(F.doc(db,'mesin',r.id),{hm:r.hm,hm_tgl:tgl,hm_sementara:F.deleteField(),...(r.reset?{hm_offset:r.off}:{})}))});
    if(jam!=null)ops.push(b=>b.set(F.doc(db,'jam_olah',tgl),{tanggal:tgl,jam:jam}));
@@ -72,8 +103,8 @@ let API,M=[],V={},RS={},FLAG={},msg='';
 const r1=x=>Math.round(x*10)/10;
 function calc(m,v){const x=parseFloat(v),R=RS[m.id],ofs=m.hm_offset||0;if(v===''||v==null)return null;
  if(isNaN(x))return{err:'Isi dengan angka.'};
- if(R&&R.on){const data=R.data!==''&&R.data!=null?parseFloat(R.data):r2((m.hm||0)+x);return{x,data,off:r2(data-x),reset:true}}
- return{x,data:r2(x+ofs),off:ofs,reset:false}}
+ if(R&&R.on){const data=R.data!==''&&R.data!=null?parseFloat(R.data):r1((m.hm||0)+x);return{x,data,off:r1(data-x),reset:true}}
+ return{x,data:r1(x+ofs),off:ofs,reset:false}}
 const val=(m,c,tgl)=>{
  if(c.err)return{k:'er',t:c.err,block:true};
  const ex=c.reset?`HM data ${N(c.data)}, offset baru ${N(c.off)}. `:(c.off?`HM data ${N(c.data)} (alat ${N(c.x)} + offset ${N(c.off)}). `:'');
@@ -90,36 +121,115 @@ const nf=(x,d=0)=>x==null||x===''||isNaN(x)?'-':(+x).toLocaleString('id-ID',{min
 const addD=(s,n)=>{const d=new Date(s+'T00:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
 const dm=s=>s?String(s).split('-').reverse().join('/'):'';
 const rk=a=>ORDER.indexOf(a)<0?99:ORDER.indexOf(a);
-const tabs=()=>'<div class="tabs noprint">'+[['in','Input'],['rk','Rekap harian'],['mn','Monitoring mingguan']].map(t=>`<button data-t="${t[0]}" aria-selected="${t[0]===TAB}">${t[1]}</button>`).join('')+'</div>';
+const tabs=()=>'<div class="tabs noprint">'+[['in','Input'],['rk','Rekap harian'],['mn','Monitoring mingguan'],['sv','Ganti / Perbaikan']].map(t=>`<button data-t="${t[0]}" aria-selected="${t[0]===TAB}">${t[1]}</button>`).join('')+'</div>';
 function bindTabs(){document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;draw()})}
 async function rekap(){
  const end=RW||today(),days=[...Array(7)].map((_,i)=>addD(end,i-6)),H={};
  (await API.log(addD(end,-14))).filter(r=>r.tanggal<=end).forEach(r=>(H[r.mesin_id]=H[r.mesin_id]||{})[r.tanggal]=+r.hm);
- const dl=(id,d)=>{const h=H[id]||{};if(h[d]==null)return null;let p=null;Object.keys(h).filter(x=>x<d).sort().forEach(x=>p=h[x]);return p==null?null:r2(h[d]-p)};
+ const dl=(id,d)=>{const h=H[id]||{};if(h[d]==null)return null;let p=null;Object.keys(h).filter(x=>x<d).sort().forEach(x=>p=h[x]);return p==null?null:r1(h[d]-p)};
+ let SL=[];try{if(API.svAll)SL=(await API.svAll(days[0])).filter(r=>r.tanggal<=end).sort((a,b)=>String(b.tanggal).localeCompare(String(a.tanggal))||String(a.mesin_nama).localeCompare(String(b.mesin_nama)))}catch(e){}
+ const MS2=Object.fromEntries(M.map(m=>[m.id,m])),hist=`<div class="sh"><span>Riwayat penggantian sparepart &amp; perbaikan</span><span class="sub">${dm(days[0])} sampai ${dm(end)}</span></div><div class="tw"><table class="t"><tr><th>Tanggal</th><th>Mesin</th><th>Jenis</th><th>Komponen</th><th>HM</th><th>Keterangan</th><th>Oleh</th></tr>`+(SL.length?SL.map(h=>`<tr><td>${dm(h.tanggal)}</td><td class="k nw">${E(h.mesin_nama||(MS2[h.mesin_id]||{}).nama||h.mesin_id)}</td><td class="k nw">${E(JN[h.jenis]||h.jenis)}</td><td class="k">${E(h.komponen||'-')}</td><td>${N(h.hm)}</td><td class="k">${E(h.keterangan||'')}</td><td class="k nw">${E(h.dicatat_oleh||'')}</td></tr>`).join(''):'<tr><td colspan="7" class="c z">Tidak ada penggantian atau perbaikan pada minggu ini.</td></tr>')+'</table></div>';
+ const JM={};if(API.jam)(await API.jam(days[0])).filter(r=>r.tanggal<=end).forEach(r=>JM[r.tanggal]=+r.jam);
+ let ct=0,cany=false;const cbc=`<tr class="ar"><td colspan="10">CBC</td></tr><tr><td>Jam olah (CBC)</td>`+days.map(d=>{const v=JM[d];if(v==null||isNaN(v))return'<td class="z">-</td>';cany=true;ct+=v;return`<td class="${v>24?'wr':''}">${N(v)}</td>`}).join('')+`<td><b>${cany?N(r1(ct)):'-'}</b></td><td class="z">-</td></tr>`;
  const by={};M.forEach(m=>(by[m.area]=by[m.area]||[]).push(m));
- const body=Object.keys(by).sort((a,b)=>rk(a)-rk(b)||a.localeCompare(b)).map(a=>`<tr class="ar"><td colspan="10">${E(a)}</td></tr>`+by[a].sort((x,y)=>String(x.nama).localeCompare(String(y.nama),'id',{numeric:true})).map(m=>{let t=0,any=false;
+ const body=cbc+Object.keys(by).sort((a,b)=>rk(a)-rk(b)||a.localeCompare(b)).map(a=>`<tr class="ar"><td colspan="10">${E(a)}</td></tr>`+by[a].sort((x,y)=>String(x.nama).localeCompare(String(y.nama),'id',{numeric:true})).map(m=>{let t=0,any=false;
   const c=days.map(d=>{const v=dl(m.id,d);if(v==null)return'<td class="z">-</td>';any=true;t+=v;return`<td class="${v>24?'wr':''}">${N(v)}</td>`}).join('');
-  return`<tr><td>${E(m.nama)}</td>${c}<td><b>${any?N(r2(t)):'-'}</b></td><td>${N(m.hm)}</td></tr>`}).join('')).join('');
- return`<div class="card noprint"><label for="rw">Minggu berakhir pada tanggal</label><input id="rw" type="date" value="${end}" max="${today()}"></div><div class="sh"><span>Rekap HM harian (jam jalan per hari)</span><span class="sub">${dm(days[0])} sampai ${dm(end)}</span></div><div class="tw"><table class="t"><tr><th>Mesin</th>${days.map(d=>`<th>${d.slice(8)}/${d.slice(5,7)}</th>`).join('')}<th>Total</th><th>HM akhir</th></tr>${body}</table></div><p class="sub">Selisih HM dengan catatan sebelumnya. Angka merah berarti lebih dari 24 jam. Tanda - berarti belum ada input pada hari itu.</p>`}
+  return`<tr><td>${E(m.nama)}</td>${c}<td><b>${any?N(r1(t)):'-'}</b></td><td>${N(m.hm)}</td></tr>`}).join('')).join('');
+ return`<div class="card noprint"><label for="rw">Minggu berakhir pada tanggal</label><input id="rw" type="date" value="${end}" max="${today()}"></div><div class="sh"><span>Rekap HM harian (jam jalan per hari)</span><span class="sub">${dm(days[0])} sampai ${dm(end)}</span></div><div class="tw"><table class="t"><tr><th>Mesin</th>${days.map(d=>`<th>${d.slice(8)}/${d.slice(5,7)}</th>`).join('')}<th>Total</th><th>HM akhir</th></tr>${body}</table></div><p class="sub">Selisih HM dengan catatan sebelumnya. Angka merah berarti lebih dari 24 jam. Baris CBC diambil dari input jam olah harian. Tanda - berarti belum ada input pada hari itu.</p>${hist}`}
 const MORD=['SCREW PRESS','PRESS CAGE PRESS','CONNECTOR','BUSH','TIE ROD','LENGTHEN','LONG','EXPELLER','ROTOR','STATOR','SCREW EMPTY','PRESS CAGE EMPTY','TURBIN','GENSET','DECANTER','VIBRATING SCREEN PRESS','CLAYBATH','VIBRATING SCREEN EB'];
+const TITLES=[[/SCREW EMPTY/,'SCREW EMPTY BUNCH PRESS'],[/PRESS CAGE EMPTY/,'PRESS CAGE EMPTY BUNCH PRESS'],[/PRESS CAGE/,'PRESS CAGE PRESS'],[/CONNECTOR/,'CONNECTOR PRESS RH/LH'],[/BUSH/,'BUSH PRESS'],[/TIE ROD/,'TIE ROD LH/RH PRESS'],[/LENGTHEN/,'WORM LENGTHENING SHAFT'],[/LONG/,'LONG & SHORT ARMS DIGESTER'],[/EXPELLER/,'EXPELLER ARMS DIGESTER'],[/ROTOR|STATOR/,'RIPPLE MILL'],[/TURBIN/,'STEAM TURBINE']];
+const ttl=k=>{const t=TITLES.find(x=>x[0].test(k));return t?t[1]:k};
+const nz=(x,d=0)=>x==null||x===''||isNaN(x)||+x===0?'-':nf(x,d);
 async function monit(){
  const SPD=await API.sp(),MS=Object.fromEntries(M.map(m=>[m.id,m])),G={},n=new Date(),p2=x=>String(x).padStart(2,'0');
- const stamp=`${p2(n.getDate())}/${p2(n.getMonth()+1)}/${n.getFullYear()} ${p2(n.getHours())}:${p2(n.getMinutes())}`,mg=Math.min(4,Math.ceil(n.getDate()/7));
+ const stamp=`${p2(n.getDate())}/${p2(n.getMonth()+1)}/${n.getFullYear()} ${p2(n.getHours())}:${p2(n.getMinutes())}`,mg=Math.min(5,Math.ceil(n.getDate()/7));
  SPD.filter(s=>MS[s.mesin_id]).forEach(s=>{const k=String(s.komponen).toUpperCase();(G[k]=G[k]||[]).push(s)});
  const rk2=k=>{const i=MORD.findIndex(o=>k.includes(o));return i<0?99:i},keys=Object.keys(G).sort((a,b)=>rk2(a)-rk2(b)||a.localeCompare(b));
- return`<div class="card noprint"><div class="sub">Minggu ${mg} ${n.toLocaleDateString('id-ID',{month:'long',year:'numeric'})}. "S/D hari ini" mengikuti HM terakhir yang diinput.</div><button class="btn" id="pr" style="margin-top:8px;width:100%">Cetak / Simpan PDF</button></div>
- <div style="text-align:center;font-weight:700;margin-top:10px">PT. KHARISMA ALAM PERSADA MILL<br>WEEKLY HOUR METER MONITORING</div>`+(keys.map((k,i)=>{
-  const rows=G[k].sort((a,b)=>String(MS[a.mesin_id].nama).localeCompare(String(MS[b.mesin_id].nama),'id',{numeric:true})),f=rows[0],d=/ROTOR|STATOR/.test(k)?2:0;
-  return`<div class="sh"><span>${i+1}. ${E(k)}</span><span class="sub">${stamp}</span></div><div class="tw"><table class="t"><tr><th rowspan="2">No</th><th rowspan="2">Jenis alat</th><th colspan="2">Service terakhir</th><th rowspan="2">S/D hari ini</th><th rowspan="2">Total HM</th><th rowspan="2">Keterangan service terakhir${f.standar_hm?'<br>('+(f.standar_min_hm?f.standar_min_hm+' - ':'')+f.standar_hm+' HM)':''}</th></tr><tr><th>Tgl</th><th>HM</th></tr>
-  ${rows.map((s,j)=>{const m=MS[s.mesin_id],h=m.hm!=null?+m.hm:null,t=h!=null&&s.hm_service_terakhir!=null?h-s.hm_service_terakhir:null,lim=s.standar_min_hm||s.standar_hm;
-   return`<tr><td class="c">${j+1}</td><td class="c">${E(String(m.nama).toUpperCase())}</td><td class="c">${dm(s.tgl_service_terakhir)}</td><td>${s.tgl_service_terakhir?nf(s.hm_service_terakhir,d):''}</td><td>${nf(h,d)}</td><td class="${t!=null&&lim&&t>=lim?'rd':''}">${nf(t,d)}</td><td class="k">${E(s.keterangan)}</td></tr>`}).join('')}</table></div>`}).join('')||'<p class="empty sub">Belum ada data sparepart.</p>')}
+ return`<div class="card noprint"><div class="sub">Minggu ${mg} ${n.toLocaleDateString('id-ID',{month:'long',year:'numeric'})}. "S/D hari ini" mengikuti HM terakhir yang diinput. Ketuk kolom "Kondisi saat ini" untuk mengisi atau mengubah.</div><button class="btn" id="pr" style="margin-top:8px;width:100%">Cetak / Simpan PDF</button></div>
+ <div class="mt0">PT. KHARISMA ALAM PERSADA MILL<br>WEEKLY HOUR METER MONITORING</div>`+(keys.map((k,i)=>{
+  const rows=G[k].sort((a,b)=>String(MS[a.mesin_id].nama).localeCompare(String(MS[b.mesin_id].nama),'id',{numeric:true})),f=rows[0],d=/ROTOR|STATOR/.test(k)?2:0,
+   hk=rows.some(s=>s.kondisi)||/DECANTER|VIBRATING/.test(k),off=hk?'':' off',
+   std=f.standar_hm?'('+(f.standar_min_hm?f.standar_min_hm+' - ':'')+f.standar_hm+' HM)':'';
+  return`<div class="ms"><div class="mh"><span style="font-weight:700;font-size:inherit">${i+1}. ${E(ttl(k))}</span><span>${stamp}</span></div><div class="tw"><table class="mt"><colgroup><col style="width:5%"><col style="width:19%"><col style="width:10%"><col style="width:10%"><col style="width:10%"><col style="width:8%"><col><col class="${off.trim()}" style="width:16%"></colgroup>
+  <tr><th rowspan="2" class="hb" style="width:5%">No</th><th rowspan="2" class="hb" style="width:20%">Jenis Alat</th><th colspan="2">SERVICE TERAKHIR</th><th rowspan="2" class="hb" style="width:10%">S/D HARI INI</th><th rowspan="2" class="hb" style="width:8%">TOTAL<br>HM</th><th class="nb">KETERANGAN SERVICE TERAKHIR</th><th rowspan="2" class="hb kc${off}" style="width:16%">Kondisi Saat ini</th></tr>
+  <tr><th class="hb" style="width:10%">TGL</th><th class="hb" style="width:10%">HM</th><th class="hb">${E(std)}</th></tr>
+  ${rows.map((s,j)=>{const m=MS[s.mesin_id],h=m.hm!=null?+m.hm:null,base=s.hm_service_terakhir!=null&&s.hm_service_terakhir!==''?+s.hm_service_terakhir:null,t=h!=null&&base!=null?h-base:null,lim=s.standar_min_hm||s.standar_hm;
+   return`<tr><td>${j+1}</td><td class="nm">${E(String(m.nama).toUpperCase())}</td><td>${dm(s.tgl_service_terakhir)}</td><td>${nz(base,d)}</td><td>${nz(h,d)}</td><td class="${t!=null&&lim&&t>=lim?'rd':''}">${nz(t)}</td><td class="k">${E(s.keterangan)}</td><td class="k kc${off}" data-kd="${E(s.id)}" title="Ketuk untuk mengubah kondisi">${E(s.kondisi)}</td></tr>`}).join('')}</table></div></div>`}).join('')||'<p class="empty sub">Belum ada data sparepart.</p>')}
+
+let SV={jenis:'ganti',mid:'',sp:'',hm:'',ket:'',tgl:'',oleh:'',upd:true},SVD={sp:[],hist:[]},SVMSG='';
+const JN={ganti:'Ganti sparepart',perbaikan:'Perbaikan'};
+async function servis(){
+ SVD={sp:API.sp?await API.sp():[],hist:API.svLog?await API.svLog():[]};
+ if(!SV.tgl)SV.tgl=today();if(!SV.oleh)SV.oleh=localStorage.getItem('hmoleh')||'';
+ return'<div id="svbox">'+svInner()+'</div>'}
+function svInner(){
+ const m=M.find(x=>x.id===SV.mid),sps=m?SVD.sp.filter(s=>s.mesin_id===m.id).sort((a,b)=>String(a.komponen).localeCompare(String(b.komponen),'id',{numeric:true})):[];
+ const by={};M.forEach(x=>(by[x.area]=by[x.area]||[]).push(x));
+ const opts=Object.keys(by).sort((a,b)=>rk(a)-rk(b)||a.localeCompare(b)).map(a=>`<optgroup label="${E(a)}">`+by[a].sort((x,y)=>String(x.nama).localeCompare(String(y.nama),'id',{numeric:true})).map(x=>`<option value="${E(x.id)}"${x.id===SV.mid?' selected':''}>${E(x.nama)} (${E(x.id)})</option>`).join('')+'</optgroup>').join('');
+ const MS=Object.fromEntries(M.map(x=>[x.id,x]));
+ const hist=SVD.hist.length?`<div class="tw"><table class="t"><tr><th>Tanggal</th><th>Mesin</th><th>Jenis</th><th>Komponen</th><th>HM</th><th>Keterangan</th><th>Oleh</th></tr>${SVD.hist.map(h=>`<tr><td>${dm(h.tanggal)}</td><td class="k nw">${E(h.mesin_nama||(MS[h.mesin_id]||{}).nama||h.mesin_id)}</td><td class="k nw">${E(JN[h.jenis]||h.jenis)}</td><td class="k">${E(h.komponen||'-')}</td><td>${N(h.hm)}</td><td class="k">${E(h.keterangan||'')}</td><td class="k nw">${E(h.dicatat_oleh||'')}</td></tr>`).join('')}</table></div>`:'<p class="sub">Belum ada riwayat.</p>';
+ return(SVMSG?'<div class="note ok">'+E(SVMSG)+'</div>':'')+`<div class="svg"><div><div class="card fm">
+ <b>Catat penggantian sparepart / perbaikan mesin</b>
+ <div class="seg">${Object.keys(JN).map(k=>`<button type="button" data-j="${k}" aria-selected="${k===SV.jenis}">${JN[k]}</button>`).join('')}</div>
+ <div class="hd"><div><label for="st">Tanggal</label><input id="st" type="date" value="${E(SV.tgl)}" max="${today()}"></div><div><label for="so">Nama pencatat</label><input id="so" value="${E(SV.oleh)}" autocomplete="name"></div></div>
+ <label for="sm">Mesin</label><select id="sm"><option value="">- pilih mesin -</option>${opts}</select>
+ <label for="ss">${SV.jenis==='ganti'?'Komponen yang diganti':'Komponen yang diperbaiki (opsional)'}</label><select id="ss"${m?'':' disabled'}><option value="">${SV.jenis==='ganti'?'- pilih komponen -':'- tanpa komponen / umum -'}</option>${sps.map(s=>`<option value="${E(s.id)}"${s.id===SV.sp?' selected':''}>${E(s.komponen)}</option>`).join('')}</select>
+ <label for="sh">HM panel saat ${SV.jenis==='ganti'?'penggantian':'perbaikan'}</label><input id="sh" inputmode="decimal" autocomplete="off" value="${E(SV.hm)}" placeholder="contoh 12345.5">
+ <div class="sub" id="sinfo">${m?(m.hm_offset?'HM terakhir di panel '+N(m.hm-m.hm_offset)+', di data '+N(m.hm):'HM terakhir '+N(m.hm))+(m.hm_tgl?', '+D(m.hm_tgl):'')+(m.hm_offset?'. Isi angka yang tertera di panel, sistem menambah offset otomatis.':''):''}</div>
+ <label for="sk">${SV.jenis==='ganti'?'Keterangan (opsional)':'Keterangan perbaikan'}</label><textarea id="sk" placeholder="${SV.jenis==='ganti'?'contoh: ganti baru, merk, jumlah':'contoh: las retak, ganti seal, bearing'}">${E(SV.ket)}</textarea>
+ <div id="svh"></div>
+ <button class="btn" id="sb" type="button">Simpan</button></div></div>
+ <div><div class="sh"><span>Riwayat terbaru</span><span class="sub">20 catatan terakhir</span></div>${hist}
+ <p class="sub">Kalau komponen dipilih, kolom service terakhir (tanggal, HM, keterangan) di Monitoring mingguan ikut diperbarui.</p></div></div>`}
+function svCalc(){
+ const m=M.find(x=>x.id===SV.mid),alat=parseFloat(SV.hm),ofs=m?(m.hm_offset||0):0,hm=isNaN(alat)?NaN:r1(alat+ofs),r={m,hm,alat,ofs};let e='',w='',up=false,updSp=true;
+ if(!m)e='Pilih mesin.';else if(!SV.tgl)e='Isi tanggal.';else if(isNaN(hm))e='Isi HM panel.';
+ else if(SV.jenis==='ganti'&&!SV.sp)e='Pilih komponen yang diganti.';
+ else if(SV.jenis==='perbaikan'&&!SV.ket.trim())e='Isi keterangan perbaikan.';
+ else if(!SV.oleh.trim())e='Isi nama pencatat.';
+ if(!e){
+  if(m.hm==null){up=true;w='Belum ada HM sebelumnya. Angka ini menjadi HM awal mesin.'}
+  else if(hm>m.hm&&(!m.hm_tgl||SV.tgl>=m.hm_tgl)){up=true;const gap=m.hm_tgl?Math.max(1,Math.round((new Date(SV.tgl)-new Date(m.hm_tgl))/864e5)):1;
+   w='Lebih tinggi '+N(r1(hm-m.hm))+' HM dari HM terakhir.'+(hm-m.hm>24*gap+8?' Lebih dari 24 jam per hari, periksa lagi angkanya.':'')}
+  else if(hm<m.hm)w='HM lebih kecil dari HM terakhir mesin ('+N(m.hm)+'). HM mesin tidak diubah, hanya tercatat di riwayat servis.';
+  const sp=SVD.sp.find(s=>s.id===SV.sp);
+  if(sp&&sp.tgl_service_terakhir&&sp.tgl_service_terakhir>SV.tgl){updSp=false;w+=(w?' ':'')+'Service terakhir komponen ini tercatat lebih baru ('+D(sp.tgl_service_terakhir)+'), jadi hanya masuk riwayat.'}}
+ return Object.assign(r,{e,w,up,updSp,updHm:up&&SV.upd})}
+function svChk(){const c=svCalc();let h='';
+ if(c.e&&(SV.mid||SV.hm||SV.ket))h=`<div class="d er">${E(c.e)}</div>`;
+ else if(!c.e){if(c.ofs)h+=`<div class="d up">HM data ${N(c.hm)} (panel ${N(c.alat)} + offset ${N(c.ofs)}). Rekap memakai HM data.</div>`;if(c.w)h+=`<div class="d wr">${E(c.w)}</div>`;if(c.up)h+=`<label class="ck"><input type="checkbox" id="su" ${SV.upd?'checked':''}>Perbarui HM mesin ke angka ini</label>`}
+ const el=$('#svh');if(el.dataset.h!==h){el.innerHTML=h;el.dataset.h=h;const u=$('#su');if(u)u.onchange=()=>{SV.upd=u.checked}}
+ $('#sb').disabled=!!c.e}
+function svDraw(){$('#svbox').innerHTML=svInner();svBind()}
+function svBind(){
+ document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{SV.jenis=b.dataset.j;SV.sp='';svDraw()});
+ $('#sm').onchange=e=>{SV.mid=e.target.value;SV.sp='';SVMSG='';const m=M.find(x=>x.id===SV.mid);SV.hm=m&&m.hm!=null?String(r1(m.hm-(m.hm_offset||0))):'';svDraw()};
+ $('#ss').onchange=e=>{SV.sp=e.target.value;svChk()};
+ $('#st').onchange=e=>{SV.tgl=e.target.value;svChk()};
+ $('#so').oninput=e=>{SV.oleh=e.target.value;svChk()};
+ $('#sh').oninput=e=>{e.target.value=d1(e.target.value);SV.hm=e.target.value;svChk()};
+ $('#sk').oninput=e=>{SV.ket=e.target.value;svChk()};
+ $('#sb').onclick=svSave;svChk()}
+async function svSave(){const c=svCalc();if(c.e){alert(c.e);return}
+ if(!API.saveSvc){alert('Fitur simpan butuh koneksi Firebase.');return}
+ const m=c.m,sp=SVD.sp.find(s=>s.id===SV.sp),ket=SV.ket.trim(),
+  x={mid:m.id,nama:m.nama,jenis:SV.jenis,sp:sp?sp.id:'',komponen:sp?sp.komponen:'',tgl:SV.tgl,hm:r1(c.hm),alat:c.alat,ket,oleh:SV.oleh.trim(),updSp:!!sp&&c.updSp,updHm:c.updHm,off:m.hm_offset||0,
+   ketSp:(SV.jenis==='ganti'?'Ganti sparepart':'Perbaikan')+(ket?': '+ket:'')};
+ if(!confirm(JN[SV.jenis]+' '+m.nama+(sp?' ('+sp.komponen+')':'')+' pada '+D(x.tgl)+', HM panel '+N(x.alat)+(x.off?' (HM data '+N(x.hm)+')':'')+'. Simpan?'))return;
+ localStorage.setItem('hmoleh',x.oleh);$('#sb').disabled=true;
+ try{await API.saveSvc(x);
+  if(x.updHm){m.hm=x.hm;m.hm_tgl=x.tgl;delete m.hm_sementara}
+  SVMSG=JN[x.jenis]+' '+m.nama+(x.komponen?' ('+x.komponen+')':'')+' tersimpan'+(x.updSp?', service terakhir komponen diperbarui':'')+(x.updHm?', HM mesin diperbarui':'')+'.';
+  SV.mid='';SV.sp='';SV.hm='';SV.ket='';other();scrollTo(0,0)}
+ catch(e){alert('Gagal menyimpan: '+(e.message||e));$('#sb').disabled=false}}
 async function other(){
  $('#bar').hidden=true;
  const top=`<div class="top noprint"><a href="menu.html">Menu</a><span class="sub">${M.length} unit</span></div><h1 class="noprint">Input HM mesin</h1>${tabs()}`;
  app.innerHTML=top+'<p class="sub">Memuat...</p>';bindTabs();
  try{if(!API.log)throw new Error('Fitur ini butuh koneksi Firebase.');
-  app.innerHTML=top+(TAB==='rk'?await rekap():await monit());bindTabs();
-  if($('#rw'))$('#rw').onchange=e=>{RW=e.target.value;draw()};if($('#pr'))$('#pr').onclick=()=>print()}
+  app.innerHTML=top+(TAB==='rk'?await rekap():TAB==='sv'?await servis():await monit());bindTabs();if(TAB==='sv')svBind();
+  if($('#rw'))$('#rw').onchange=e=>{RW=e.target.value;draw()};if($('#pr'))$('#pr').onclick=()=>print();
+  document.querySelectorAll('td[data-kd]').forEach(td=>td.onclick=async()=>{if(!API.kond)return;const v=prompt('Kondisi saat ini:',td.textContent.trim());if(v===null)return;try{await API.kond(td.dataset.kd,v.trim());other()}catch(e){alert('Gagal menyimpan: '+(e.message||e))}})}
  catch(e){app.innerHTML=top+'<div class="note bad">Gagal memuat: '+E(e.message||e)+'</div>';bindTabs()}}
 function draw(){
  if(TAB!=='in')return other();
@@ -130,10 +240,10 @@ function draw(){
  <div class="card"><div class="hd"><div><label for="tg">Tanggal</label><input id="tg" type="date" value="${tgl}" max="${today()}"></div><div><label for="nm">Nama pencatat</label><input id="nm" value="${E(who)}" autocomplete="name"></div></div>
  <div style="margin-top:10px"><label for="jm">Jam olah hari ini (CBC), opsional</label><input id="jm" inputmode="decimal" autocomplete="off" placeholder="contoh 19.5" value="${E(jam)}"><div class="d er" id="jme"></div></div></div>
  <p class="sub" style="margin:10px 2px 0">Isi HM sesuai angka yang tertera di alat. Kalau meter pernah diganti, sistem menambahkan offset otomatis.</p>`+
- areas.map(a=>`<h2>${E(a)}</h2><div class="g">`+by[a].sort((x,y)=>String(x.nama).localeCompare(String(y.nama),'id',{numeric:true})).map(m=>{const ofs=m.hm_offset||0,R=RS[m.id]&&RS[m.id].on;
+ areas.map(a=>`<h2>${E(a)}</h2><div class="rg">`+by[a].sort((x,y)=>String(x.nama).localeCompare(String(y.nama),'id',{numeric:true})).map(m=>{const ofs=m.hm_offset||0,R=RS[m.id]&&RS[m.id].on;
   return `<div class="r"><div><b>${E(m.nama)}</b><span class="id">${E(m.id)}</span>${m.hm_sementara?'<span class="pill">HM sementara</span>':''}${ofs?'<span class="pill">Meter diganti</span>':''}</div><input data-id="${E(m.id)}" inputmode="decimal" autocomplete="off" aria-label="HM alat ${E(m.nama)}" value="${E(V[m.id]??'')}"><div class="l">Terakhir ${N(m.hm)}${ofs?' (alat '+N(m.hm-ofs)+')':''}, ${D(m.hm_tgl)} &nbsp;<a href="#" data-r="${E(m.id)}">${R?'Batal meter diganti':'Meter diganti?'}</a></div>${R?`<div class="rs"><label>HM data lanjutan pada tanggal ini<input data-rd="${E(m.id)}" inputmode="decimal" autocomplete="off" placeholder="kosong = HM terakhir + angka alat" value="${E(RS[m.id].data||'')}"></label></div>`:''}<div class="d" id="d-${E(m.id)}"></div></div>`}).join('')+'</div>').join('');
- document.querySelectorAll('.r input[data-id]').forEach(i=>i.oninput=()=>{i.value=d2(i.value);V[i.dataset.id]=i.value;chk()});
- document.querySelectorAll('.r input[data-rd]').forEach(i=>i.oninput=()=>{i.value=d2(i.value);RS[i.dataset.rd].data=i.value;chk()});
+ document.querySelectorAll('.r input[data-id]').forEach(i=>i.oninput=()=>{i.value=d1(i.value);V[i.dataset.id]=i.value;chk()});
+ document.querySelectorAll('.r input[data-rd]').forEach(i=>i.oninput=()=>{i.value=d1(i.value);RS[i.dataset.rd].data=i.value;chk()});
  document.querySelectorAll('a[data-r]').forEach(a=>a.onclick=e=>{e.preventDefault();const id=a.dataset.r;RS[id]=RS[id]&&RS[id].on?null:{on:true,data:''};draw()});
  bindTabs();$('#tg').onchange=chk;$('#jm').oninput=e=>{e.target.value=d1(e.target.value);chk()};chk()}
 function chk(){const tgl=$('#tg').value;let n=0,bad=0;
