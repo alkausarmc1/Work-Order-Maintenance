@@ -6,7 +6,7 @@
 <style>
 :root{--bg:#eef1f4;--ink:#14202b;--mut:#51606d;--line:#c9d2da;--card:#fff;--ac:#2f5d8a;--r:#b3261e;--y:#a86400;--g:#2a7048}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.4 'Barlow Semi Condensed',system-ui,sans-serif;padding-bottom:84px}
-main{max-width:720px;margin:0 auto;padding:14px 12px}h1{font-size:28px;line-height:1.1;margin:2px 0 8px;font-weight:700}
+main{max-width:1400px;margin:0 auto;padding:14px 12px}h1{font-size:28px;line-height:1.1;margin:2px 0 8px;font-weight:700}
 h2{font-size:18px;margin:20px 0 6px;font-weight:700;padding-bottom:4px;border-bottom:2px solid var(--ink)}
 .sub{color:var(--mut);font-size:15px}.top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}a{color:var(--ac)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:11px 12px}
@@ -21,10 +21,13 @@ input{font:inherit;color:var(--ink);padding:10px;border:1px solid var(--line);bo
 .pill{font-size:12px;border:1px solid var(--y);color:var(--y);border-radius:3px;padding:0 5px;margin-left:6px}
 .rs{grid-column:1/-1;margin-top:2px}.rs input{margin-top:4px;font-size:18px;text-align:left}.l a{font-size:14px}
 .bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:10px 12px}
-.bar div{max-width:720px;margin:0 auto;display:flex;gap:10px;align-items:center}.bar span{flex:1;font-size:15px;color:var(--mut)}
+.bar div{max-width:1400px;margin:0 auto;display:flex;gap:10px;align-items:center}.bar span{flex:1;font-size:15px;color:var(--mut)}
 .btn{border:0;cursor:pointer;background:var(--ac);color:#fff;font-weight:700;font-size:18px;font-family:inherit;padding:13px 20px;border-radius:4px}.btn[disabled]{opacity:.5}
 :focus-visible{outline:3px solid #f0a500;outline-offset:2px}
-.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0;max-width:640px}
+.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(420px,100%),1fr));gap:0 32px}
+#lg{max-width:420px;margin:40px auto}
+@media(min-width:900px){.hd{grid-template-columns:1fr 1fr 1fr}}
 .tabs button{font:700 16px inherit;font-family:inherit;padding:11px 4px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:4px;cursor:pointer}
 .tabs button[aria-selected=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
 .tw{overflow-x:auto;margin-top:8px}table.t{border-collapse:collapse;width:100%;font-size:14px;background:#fff}
@@ -127,8 +130,8 @@ function draw(){
  <div class="card"><div class="hd"><div><label for="tg">Tanggal</label><input id="tg" type="date" value="${tgl}" max="${today()}"></div><div><label for="nm">Nama pencatat</label><input id="nm" value="${E(who)}" autocomplete="name"></div></div>
  <div style="margin-top:10px"><label for="jm">Jam olah hari ini (CBC), opsional</label><input id="jm" inputmode="decimal" autocomplete="off" placeholder="contoh 19.5" value="${E(jam)}"><div class="d er" id="jme"></div></div></div>
  <p class="sub" style="margin:10px 2px 0">Isi HM sesuai angka yang tertera di alat. Kalau meter pernah diganti, sistem menambahkan offset otomatis.</p>`+
- areas.map(a=>`<h2>${E(a)}</h2>`+by[a].sort((x,y)=>String(x.nama).localeCompare(String(y.nama),'id',{numeric:true})).map(m=>{const ofs=m.hm_offset||0,R=RS[m.id]&&RS[m.id].on;
-  return `<div class="r"><div><b>${E(m.nama)}</b><span class="id">${E(m.id)}</span>${m.hm_sementara?'<span class="pill">HM sementara</span>':''}${ofs?'<span class="pill">Meter diganti</span>':''}</div><input data-id="${E(m.id)}" inputmode="decimal" autocomplete="off" aria-label="HM alat ${E(m.nama)}" value="${E(V[m.id]??'')}"><div class="l">Terakhir ${N(m.hm)}${ofs?' (alat '+N(m.hm-ofs)+')':''}, ${D(m.hm_tgl)} &nbsp;<a href="#" data-r="${E(m.id)}">${R?'Batal meter diganti':'Meter diganti?'}</a></div>${R?`<div class="rs"><label>HM data lanjutan pada tanggal ini<input data-rd="${E(m.id)}" inputmode="decimal" autocomplete="off" placeholder="kosong = HM terakhir + angka alat" value="${E(RS[m.id].data||'')}"></label></div>`:''}<div class="d" id="d-${E(m.id)}"></div></div>`}).join('')).join('');
+ areas.map(a=>`<h2>${E(a)}</h2><div class="g">`+by[a].sort((x,y)=>String(x.nama).localeCompare(String(y.nama),'id',{numeric:true})).map(m=>{const ofs=m.hm_offset||0,R=RS[m.id]&&RS[m.id].on;
+  return `<div class="r"><div><b>${E(m.nama)}</b><span class="id">${E(m.id)}</span>${m.hm_sementara?'<span class="pill">HM sementara</span>':''}${ofs?'<span class="pill">Meter diganti</span>':''}</div><input data-id="${E(m.id)}" inputmode="decimal" autocomplete="off" aria-label="HM alat ${E(m.nama)}" value="${E(V[m.id]??'')}"><div class="l">Terakhir ${N(m.hm)}${ofs?' (alat '+N(m.hm-ofs)+')':''}, ${D(m.hm_tgl)} &nbsp;<a href="#" data-r="${E(m.id)}">${R?'Batal meter diganti':'Meter diganti?'}</a></div>${R?`<div class="rs"><label>HM data lanjutan pada tanggal ini<input data-rd="${E(m.id)}" inputmode="decimal" autocomplete="off" placeholder="kosong = HM terakhir + angka alat" value="${E(RS[m.id].data||'')}"></label></div>`:''}<div class="d" id="d-${E(m.id)}"></div></div>`}).join('')+'</div>').join('');
  document.querySelectorAll('.r input[data-id]').forEach(i=>i.oninput=()=>{i.value=d2(i.value);V[i.dataset.id]=i.value;chk()});
  document.querySelectorAll('.r input[data-rd]').forEach(i=>i.oninput=()=>{i.value=d2(i.value);RS[i.dataset.rd].data=i.value;chk()});
  document.querySelectorAll('a[data-r]').forEach(a=>a.onclick=e=>{e.preventDefault();const id=a.dataset.r;RS[id]=RS[id]&&RS[id].on?null:{on:true,data:''};draw()});
