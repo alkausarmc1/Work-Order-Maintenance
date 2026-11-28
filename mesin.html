@@ -11,6 +11,7 @@ h1{font-size:28px;line-height:1.1;margin:6px 0 2px;font-weight:700}h2{font-size:
 .sub{color:var(--mut);font-size:15px}.hm{font-variant-numeric:tabular-nums;font-weight:500}
 a{color:var(--ac)}.top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .btn{display:block;width:100%;border:0;cursor:pointer;text-align:center;background:var(--ac);color:#fff;text-decoration:none;font-weight:700;font-size:18px;font-family:inherit;line-height:1.2;padding:13px;border-radius:4px;margin-top:12px}
+.btn.s{background:#fff;color:var(--ink);border:1px solid var(--ink)}
 :focus-visible{outline:3px solid #f0a500;outline-offset:2px}
 .card,.sp,.rw{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:12px 13px}
 ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -88,19 +89,20 @@ function bindHm(m,api,redraw){const f=$('#hf');if(!f)return;let warn=false;
 async function show(api){
  const demo=api.demo?'<div class="note">Mode contoh: perangkat ini belum tersambung ke Firebase. Data hanya contoh dan HM yang diinput tidak disimpan. <a href="sambungkan.html">Sambungkan perangkat ini</a>.</div>':'';
  if(!ID){const l=(await api.vital()).sort((a,b)=>(a.nama||'').localeCompare(b.nama||''));
-  app.innerHTML=demo+'<h1>Pilih mesin</h1><input id="f" placeholder="Cari nama atau ID mesin" aria-label="Cari mesin" style="margin:10px 0"><ul class="pick" id="l"></ul>';
+  app.innerHTML=demo+'<h1>Pilih mesin</h1><input id="f" placeholder="Cari nama atau ID mesin" aria-label="Cari mesin" style="margin:10px 0"><ul class="pick" id="l"></ul><a class="btn" href="hm_mesin.html" style="margin-top:22px">Input HM mesin</a><a class="btn" href="hm_alat.html">Input monitoring HM alat</a><a class="btn s" href="menu.html">Kembali ke menu</a>';
   const r=()=>{const f=$('#f').value.toLowerCase();$('#l').innerHTML=l.filter(m=>(m.nama+m.id).toLowerCase().includes(f)).map(m=>`<li class="card"><a href="?id=${encodeURIComponent(m.id)}"><div class="row"><b>${E(m.nama)}</b><span class="sub">${E(m.id)}</span></div><div class="sub">${E(cap(m.area))}</div></a></li>`).join('')||'<li class="empty">Tidak ada mesin yang cocok.</li>'};
   $('#f').oninput=r;r();return}
  const m=await api.mesin(ID);
- if(!m){app.innerHTML=demo+'<h1>Mesin tidak ditemukan</h1><p class="sub">ID '+E(ID)+' belum ada di database. Cek kode pada barcode.</p><a href="'+location.pathname+'">Pilih mesin lain</a>';return}
+ if(!m){app.innerHTML=demo+'<h1>Mesin tidak ditemukan</h1><p class="sub">ID '+E(ID)+' belum ada di database. Cek kode pada barcode.</p><a href="'+location.pathname+'">Pilih mesin lain</a><a class="btn s" href="menu.html">Kembali ke menu</a>';return}
  const[sp,pg]=await Promise.all([api.sp(ID),api.pg(ID)]);
  let tab=['hm','spek','sp'].includes(location.hash.slice(1))?location.hash.slice(1):'sp',msg='';
- if(m.kn&&tab==='hm')tab='sp';
- const draw=()=>{const T=[['hm','Input HM'],['spek','Spesifikasi'],['sp','Sparepart']].filter(t=>!(m.kn&&t[0]==='hm')),lama=m.hm_tgl?Math.floor((Date.now()-new Date(m.hm_tgl))/864e5):null;
+ if(tab==='hm')tab='sp';
+ const draw=()=>{const T=[['hm','Input HM'],['spek','Spesifikasi'],['sp','Sparepart']].filter(t=>t[0]!=='hm'),lama=m.hm_tgl?Math.floor((Date.now()-new Date(m.hm_tgl))/864e5):null;
   app.innerHTML=demo+`<div class="top"><a href="${location.pathname}">Semua mesin</a><span class="sub">${E(m.id)}</span></div><h1>${E(m.nama)}</h1><div class="sub">${E(cap(m.area))}</div>
-  <div class="card" style="margin-top:12px"><div class="sub">HM sekarang</div><div class="hm" style="font-size:34px;line-height:1.1">${N(m.hm)}</div><div class="sub">Diperbarui ${D(m.hm_tgl)}</div></div>${lama!=null&&lama>=3?`<div class="note" style="margin-top:10px">HM terakhir diinput ${lama} hari lalu.</div>`:''}${m.kn?'<div class="sub" style="margin-top:8px">HM unit ini diambil dari Input monitoring HM alat.</div>':''}
+  <div class="card" style="margin-top:12px"><div class="sub">HM sekarang</div><div class="hm" style="font-size:34px;line-height:1.1">${N(m.hm)}</div><div class="sub">Diperbarui ${D(m.hm_tgl)}</div></div>${lama!=null&&lama>=3?`<div class="note" style="margin-top:10px">HM terakhir diinput ${lama} hari lalu.</div>`:''}
   <div class="tabs" role="tablist" style="grid-template-columns:repeat(${T.length},1fr)">${T.map(t=>`<button role="tab" data-t="${t[0]}" aria-selected="${t[0]===tab}">${t[1]}</button>`).join('')}</div>
-  ${msg?'<div class="note ok">'+E(msg)+'</div>':''}${tab==='sp'?pSp(m,sp,pg):tab==='spek'?pSpek(m):pHm(m,api)}`;
+  ${msg?'<div class="note ok">'+E(msg)+'</div>':''}${tab==='sp'?pSp(m,sp,pg):tab==='spek'?pSpek(m):pHm(m,api)}
+  <a class="btn" href="${m.kn?'hm_alat.html':'hm_mesin.html'}" style="margin-top:22px">${m.kn?'Input monitoring HM alat':'Input HM mesin'}</a><a class="btn s" href="menu.html">Kembali ke menu</a>`;
   document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;msg='';history.replaceState(null,'','#'+tab);draw()});
   if(tab==='hm')bindHm(m,api,s=>{msg=s;tab='sp';draw()})};
  draw()}
