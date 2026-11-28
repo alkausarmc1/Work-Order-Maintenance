@@ -48,7 +48,14 @@ async function connect(){
  const ap=A.initializeApp(C.firebase),db=F.getFirestore(ap),au=U.getAuth(ap);
  await new Promise(res=>U.onAuthStateChanged(au,u=>u?res():login(U,au)));
  const all=async(c,f,v)=>(await F.getDocs(f?F.query(F.collection(db,c),F.where(f,'==',v)):F.collection(db,c))).docs.map(d=>({id:d.id,...d.data()}));
- return{mesin:async id=>{const s=await F.getDoc(F.doc(db,'mesin',id));return s.exists()?{id,...s.data()}:null},vital:()=>all('mesin','vital',true),sp:id=>all('sparepart_standar','mesin_id',id),pg:id=>all('penggantian','mesin_id',id),
+ const live=async id=>{try{const[a,b]=await Promise.all([F.getDoc(F.doc(db,'alat',id)),all('alat_bulan','mesin_id',id)]);
+   const L=[];b.forEach(x=>(x.logs||[]).forEach(l=>{if(l&&l.d&&+l.hm>0)L.push(l)}));L.sort((p,q)=>String(p.d).localeCompare(String(q.d)));
+   const last=L[L.length-1],ad=a.exists()?a.data():null;
+   return{ada:!!ad,nama:ad&&ad.n?String(ad.n).trim():null,hm:last?+last.hm:(ad&&ad.hm!=null?+ad.hm:null),hm_tgl:last?last.d:null}}catch(e){return null}};
+ return{mesin:async id=>{const s=await F.getDoc(F.doc(db,'mesin',id));let m=s.exists()?{id,...s.data()}:null;
+   if(/^MS-KN-/.test(id)){const lv=await live(id);if(lv&&lv.ada){m=m||{id,nama:lv.nama||id,area:'ALAT BERAT DAN KENDARAAN'};if(lv.hm!=null){m.hm=lv.hm;m.hm_tgl=lv.hm_tgl||m.hm_tgl}m.kn=true}}
+   return m},
+  vital:async()=>{const l=await all('mesin','vital',true);try{const a=await all('alat'),have=new Set(l.map(x=>x.id));a.forEach(x=>{if(!have.has(x.id))l.push({id:x.id,nama:String(x.n||x.id).trim(),area:'ALAT BERAT DAN KENDARAAN'})})}catch(e){}return l},sp:id=>all('sparepart_standar','mesin_id',id),pg:id=>all('penggantian','mesin_id',id),
   simpan:async(m,d)=>{await F.setDoc(F.doc(db,'hm_log',m.id+'_'+d.tanggal),{mesin_id:m.id,tanggal:d.tanggal,hm:d.hm,dicatat_oleh:d.oleh||au.currentUser.email,catatan:d.catatan||'',dibuat:F.serverTimestamp()});
    if(!m.hm_tgl||d.tanggal>=m.hm_tgl)await F.updateDoc(F.doc(db,'mesin',m.id),{hm:d.hm,hm_tgl:d.tanggal})}}}
 function stat(s,h){const u=h-s.hm_service_terakhir,sd=s.standar_hm;
@@ -88,10 +95,11 @@ async function show(api){
  if(!m){app.innerHTML=demo+'<h1>Mesin tidak ditemukan</h1><p class="sub">ID '+E(ID)+' belum ada di database. Cek kode pada barcode.</p><a href="'+location.pathname+'">Pilih mesin lain</a>';return}
  const[sp,pg]=await Promise.all([api.sp(ID),api.pg(ID)]);
  let tab=['hm','spek','sp'].includes(location.hash.slice(1))?location.hash.slice(1):'sp',msg='';
- const draw=()=>{const T=[['hm','Input HM'],['spek','Spesifikasi'],['sp','Sparepart']];
+ if(m.kn&&tab==='hm')tab='sp';
+ const draw=()=>{const T=[['hm','Input HM'],['spek','Spesifikasi'],['sp','Sparepart']].filter(t=>!(m.kn&&t[0]==='hm')),lama=m.hm_tgl?Math.floor((Date.now()-new Date(m.hm_tgl))/864e5):null;
   app.innerHTML=demo+`<div class="top"><a href="${location.pathname}">Semua mesin</a><span class="sub">${E(m.id)}</span></div><h1>${E(m.nama)}</h1><div class="sub">${E(cap(m.area))}</div>
-  <div class="card" style="margin-top:12px"><div class="sub">HM sekarang</div><div class="hm" style="font-size:34px;line-height:1.1">${N(m.hm)}</div><div class="sub">Diperbarui ${D(m.hm_tgl)}</div></div>
-  <div class="tabs" role="tablist">${T.map(t=>`<button role="tab" data-t="${t[0]}" aria-selected="${t[0]===tab}">${t[1]}</button>`).join('')}</div>
+  <div class="card" style="margin-top:12px"><div class="sub">HM sekarang</div><div class="hm" style="font-size:34px;line-height:1.1">${N(m.hm)}</div><div class="sub">Diperbarui ${D(m.hm_tgl)}</div></div>${lama!=null&&lama>=3?`<div class="note" style="margin-top:10px">HM terakhir diinput ${lama} hari lalu.</div>`:''}${m.kn?'<div class="sub" style="margin-top:8px">HM unit ini diambil dari Input monitoring HM alat.</div>':''}
+  <div class="tabs" role="tablist" style="grid-template-columns:repeat(${T.length},1fr)">${T.map(t=>`<button role="tab" data-t="${t[0]}" aria-selected="${t[0]===tab}">${t[1]}</button>`).join('')}</div>
   ${msg?'<div class="note ok">'+E(msg)+'</div>':''}${tab==='sp'?pSp(m,sp,pg):tab==='spek'?pSpek(m):pHm(m,api)}`;
   document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;msg='';history.replaceState(null,'','#'+tab);draw()});
   if(tab==='hm')bindHm(m,api,s=>{msg=s;tab='sp';draw()})};
